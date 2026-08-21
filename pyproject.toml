@@ -13,7 +13,7 @@ dependencies = [
     "pydantic-settings==2.7.1",
     "pymodbus==3.8.6",
     "sqlalchemy[asyncio]>=2.0.51",
-    "uvicorn[standard]==0.34.0",
+    "uvicorn[standard]==0.52.3",
 ]
 
 [dependency-groups]
