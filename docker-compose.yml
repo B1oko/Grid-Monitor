@@ -1,0 +1,18 @@
+# Linux / Raspberry Pi: host networking lets LAN discovery and Modbus work.
+# On Docker Desktop (macOS/Windows) use docker-compose.bridge.yml instead.
+
+services:
+  grid-monitor:
+    image: ghcr.io/${GITHUB_REPOSITORY:-grid-monitor/grid-monitor}:latest
+    build: .
+    container_name: grid-monitor
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - gridmonitor-data:/data
+    environment:
+      TZ: UTC
+      DATA_DIR: /data
+
+volumes:
+  gridmonitor-data:

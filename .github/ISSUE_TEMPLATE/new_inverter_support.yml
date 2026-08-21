@@ -1,0 +1,40 @@
+name: New inverter support
+description: Request or contribute support for another inverter model
+title: "[Driver] "
+labels: ["driver"]
+body:
+  - type: input
+    id: brand
+    attributes:
+      label: Brand and model
+      placeholder: SAJ H2, Growatt SPH, …
+    validations:
+      required: true
+  - type: input
+    id: protocol
+    attributes:
+      label: Protocol
+      description: Modbus TCP, HTTP, MQTT, serial, …
+      placeholder: Modbus TCP port 502
+    validations:
+      required: true
+  - type: textarea
+    id: dump
+    attributes:
+      label: Register dump or sample payload
+      description: |
+        See CONTRIBUTING.md for the JSON dump format. If you cannot capture
+        registers, describe the fields you can already read (PV W, battery W, SoC).
+      render: json
+  - type: textarea
+    id: docs
+    attributes:
+      label: Protocol documentation
+      description: Links to public docs, GitHub repos, or Home Assistant integrations.
+  - type: checkboxes
+    id: hardware
+    attributes:
+      label: Hardware access
+      options:
+        - label: I can test a driver against a real unit
+        - label: I can capture more register dumps if needed

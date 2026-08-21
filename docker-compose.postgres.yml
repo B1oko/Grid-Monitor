@@ -1,0 +1,43 @@
+# Optional PostgreSQL backend. Run with:
+#   docker compose -f docker-compose.postgres.yml up -d
+#
+# Then open http://<host>:8080 and add your inverter in the wizard.
+# If the container cannot reach the inverter, switch to host networking
+# (see docker-compose.yml) or set the inverter IP manually.
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gridmonitor
+      POSTGRES_USER: gridmonitor
+      POSTGRES_PASSWORD: gridmonitor
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gridmonitor"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  grid-monitor:
+    image: ghcr.io/${GITHUB_REPOSITORY:-grid-monitor/grid-monitor}:latest
+    build: .
+    container_name: grid-monitor
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8000"
+    volumes:
+      - gridmonitor-data:/data
+    environment:
+      TZ: UTC
+      DATA_DIR: /data
+      DATABASE_URL: postgresql+asyncpg://gridmonitor:gridmonitor@db:5432/gridmonitor
+
+volumes:
+  pgdata:
+  gridmonitor-data:

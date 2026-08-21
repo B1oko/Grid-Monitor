@@ -1,0 +1,55 @@
+name: Bug report
+description: Something is not working as expected
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to report a bug. Do not include passwords or inverter credentials.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start the container with …
+        2. Open …
+        3. Click …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Docker tag, git commit, or release (for example `0.1.0` or `edge`).
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How are you running Grid Monitor?
+      options:
+        - Docker (linux/amd64)
+        - Docker (linux/arm64, Raspberry Pi)
+        - docker compose
+        - Local Python / uv
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant container or application logs. Redact personal IPs if you want.
+      render: shell
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Inverter model, network setup (host/bridge), operating system.

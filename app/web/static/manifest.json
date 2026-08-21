@@ -1,0 +1,19 @@
+{
+  "name": "Grid Monitor",
+  "short_name": "GridMon",
+  "description": "Live solar inverter dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f6f7f4",
+  "theme_color": "#2f6f73",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

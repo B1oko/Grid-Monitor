@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Grid Monitor</title>
+    <meta name="theme-color" content="#2f6f73" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Grid Monitor" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="wizard" class="wizard" hidden>
+      <div class="wizard-card">
+        <h1>Set up Grid Monitor</h1>
+        <p>Add an inverter to start monitoring. You can scan your LAN or enter the address yourself.</p>
+        <p class="wizard-note">Network scans probe Modbus TCP on your local subnet. Only run them on a network you own.</p>
+        <div class="wizard-actions">
+          <button type="button" class="discover-button" id="wizard-scan">Scan network</button>
+          <button type="button" class="interval-button" id="wizard-manual">Add manually</button>
+        </div>
+        <p id="wizard-status" class="wizard-status"></p>
+        <div id="wizard-candidates" class="candidate-list"></div>
+        <form id="wizard-form" class="settings-form" hidden>
+          <label>Name <input id="wizard-name" type="text" value="Inverter" required /></label>
+          <label>Driver
+            <select id="wizard-driver" required></select>
+          </label>
+          <label>Host <input id="wizard-host" type="text" placeholder="192.168.1.50" required /></label>
+          <label>Port <input id="wizard-port" type="number" value="502" min="1" max="65535" /></label>
+          <label>Modbus unit id <input id="wizard-unit" type="number" value="1" min="1" max="255" /></label>
+          <label>Battery capacity (kWh) <input id="wizard-battery" type="number" min="0" step="0.1" placeholder="optional" /></label>
+          <button type="submit" class="discover-button">Save inverter</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="settings-modal" class="modal" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <h2>Settings</h2>
+          <button type="button" class="icon-button" id="settings-close" aria-label="Close settings">×</button>
+        </div>
+        <form id="settings-form" class="settings-form">
+          <fieldset>
+            <legend>Inverter</legend>
+            <label>Name <input id="set-name" type="text" required /></label>
+            <label>Host <input id="set-host" type="text" required /></label>
+            <label>Port <input id="set-port" type="number" min="1" max="65535" /></label>
+            <label>Poll interval (seconds)
+              <select id="set-poll">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="30">30</option>
+              </select>
+            </label>
+            <label>Battery capacity (kWh) <input id="set-battery" type="number" min="0" step="0.1" /></label>
+          </fieldset>
+          <fieldset>
+            <legend>History</legend>
+            <label>Recorder interval (seconds) <input id="set-recorder" type="number" min="10" max="3600" /></label>
+            <label>Retention (days, 0 = forever) <input id="set-retention" type="number" min="0" max="3650" /></label>
+            <label>Downsample after (days, 0 = off) <input id="set-downsample" type="number" min="0" max="3650" /></label>
+            <label>Timezone <input id="set-timezone" type="text" /></label>
+          </fieldset>
+          <div class="modal-actions">
+            <button type="submit" class="discover-button">Save</button>
+            <button type="button" class="danger-button" id="delete-inverter">Remove inverter</button>
+          </div>
+          <p id="settings-status" class="wizard-status"></p>
+        </form>
+      </div>
+    </div>
+
+    <main class="shell" id="dashboard">
+      <header class="topbar">
+        <div>
+          <h1>Grid Monitor</h1>
+          <p id="last-update">No data yet</p>
+        </div>
+        <div class="topbar-right">
+          <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Dark mode">◑</button>
+          <button type="button" class="theme-toggle" id="settings-open" aria-label="Settings">⚙</button>
+          <div class="status" id="status">
+            <span class="status-dot"></span>
+            <span id="status-text">Connecting</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="discovery-panel" aria-label="Inverter">
+        <div class="discovery-info">
+          <div>
+            <span>Inverter</span>
+            <select id="inverter-select" class="interval-select" aria-label="Select inverter"></select>
+          </div>
+          <div>
+            <span>Address</span>
+            <strong id="inverter-host">--</strong>
+          </div>
+        </div>
+        <div class="discovery-actions">
+          <button type="button" class="interval-button" id="add-inverter-button">Add</button>
+          <button type="button" class="discover-button" id="discover-button">Scan network</button>
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="Live power">
+        <article class="metric metric-load">
+          <span>Home</span>
+          <strong id="load-power">-- W</strong>
+        </article>
+        <article class="metric metric-solar">
+          <span>Solar</span>
+          <strong id="pv-power">-- W</strong>
+        </article>
+        <article class="metric metric-battery">
+          <span>Battery</span>
+          <strong id="battery-power">-- W</strong>
+        </article>
+        <article class="metric metric-battery-soc">
+          <span>Battery SoC</span>
+          <strong id="battery-percent">-- %</strong>
+          <small class="battery-estimate" id="battery-estimate">--</small>
+        </article>
+        <article class="metric metric-grid">
+          <span>Grid</span>
+          <strong id="grid-power">-- W</strong>
+        </article>
+        <article class="metric metric-inverter">
+          <span>Inverter</span>
+          <strong id="inverter-power">-- W</strong>
+        </article>
+      </section>
+
+      <section class="flow-panel" aria-label="Energy flow">
+        <div class="flow-head">
+          <h2>Energy flow</h2>
+        </div>
+        <div class="flow-wrap">
+          <svg class="flow-diagram" viewBox="0 0 460 390" aria-hidden="true">
+            <line class="flow-track" x1="117" y1="120" x2="230" y2="185"/>
+            <line class="flow-track" x1="343" y1="120" x2="230" y2="185"/>
+            <line class="flow-track" x1="230" y1="315" x2="230" y2="185"/>
+            <line class="flow-anim flow-color-solar" id="flo-solar" x1="117" y1="120" x2="230" y2="185"/>
+            <line class="flow-anim flow-color-grid" id="flo-grid-import" x1="343" y1="120" x2="230" y2="185"/>
+            <line class="flow-anim flow-color-grid" id="flo-grid-export" x1="230" y1="185" x2="343" y2="120"/>
+            <line class="flow-anim flow-color-battery" id="flo-bat-discharge" x1="230" y1="315" x2="230" y2="185"/>
+            <line class="flow-anim flow-color-battery" id="flo-bat-charge" x1="230" y1="185" x2="230" y2="315"/>
+            <circle class="flow-node node-solar" cx="117" cy="120" r="44"/>
+            <text class="flow-icon" x="117" y="108">☀️</text>
+            <text class="flow-watts" x="117" y="130" id="flow-pv-watts">-- W</text>
+            <text class="flow-label" x="117" y="178">Solar</text>
+            <circle class="flow-node node-grid" cx="343" cy="120" r="44"/>
+            <text class="flow-icon" x="343" y="108">⚡</text>
+            <text class="flow-watts" x="343" y="130" id="flow-grid-watts">-- W</text>
+            <text class="flow-label" x="343" y="178">Grid</text>
+            <circle class="flow-node node-home" cx="230" cy="185" r="44"/>
+            <text class="flow-icon" x="230" y="173">🏠</text>
+            <text class="flow-watts" x="230" y="195" id="flow-load-watts">-- W</text>
+            <text class="flow-label" x="230" y="243">Home</text>
+            <circle class="flow-node node-battery" cx="230" cy="315" r="44"/>
+            <text class="flow-icon" x="230" y="300">🔋</text>
+            <text class="flow-watts" x="230" y="320" id="flow-bat-watts">-- W</text>
+            <text class="flow-soc" x="230" y="336" id="flow-bat-soc">-- %</text>
+            <text class="flow-time" x="230" y="350" id="flow-bat-time"></text>
+            <text class="flow-label" x="230" y="373">Battery</text>
+          </svg>
+        </div>
+      </section>
+
+      <section class="chart-panel" aria-label="Power chart">
+        <div class="chart-head">
+          <h2 id="chart-title">Live power</h2>
+          <div class="chart-head-right">
+            <div class="chart-ranges" role="group" aria-label="Chart range">
+              <button class="range-btn range-btn-live active" data-range="live">Live</button>
+              <button class="range-btn" data-range="today">Today</button>
+              <button class="range-btn" data-range="yesterday">Yesterday</button>
+              <button class="range-btn" data-range="7d">7 days</button>
+              <button class="range-btn" data-range="30d">30 days</button>
+              <button class="range-btn" data-range="month">This month</button>
+              <button class="range-btn" data-range="year">This year</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="main-chart"></canvas>
+          <p class="chart-empty" id="chart-empty" hidden>No data for this period</p>
+        </div>
+      </section>
+
+      <section class="details" aria-label="Details">
+        <div>
+          <span>Total grid</span>
+          <strong id="total-grid-power">-- W</strong>
+        </div>
+        <div>
+          <span>Grid VA</span>
+          <strong id="grid-va">-- VA</strong>
+        </div>
+        <div>
+          <span>Inverter VA</span>
+          <strong id="inverter-va">-- VA</strong>
+        </div>
+        <div>
+          <span>Latency</span>
+          <strong id="latency">-- ms</strong>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/vendor/chart.umd.min.js"></script>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
