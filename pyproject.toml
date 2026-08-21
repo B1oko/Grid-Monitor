@@ -9,7 +9,7 @@ dependencies = [
     "aiosqlite>=0.21.0",
     "alembic>=1.14.0",
     "asyncpg>=0.31.0",
-    "fastapi==0.115.6",
+    "fastapi==0.141.1",
     "pydantic-settings==2.7.1",
     "pymodbus==3.8.6",
     "sqlalchemy[asyncio]>=2.0.51",
