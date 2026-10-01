@@ -19,6 +19,13 @@ uv run ruff check .
 uv run ruff format .
 ```
 
+## Branches
+
+- `main` is the stable branch. Pushes publish the `edge` image; tags `v*` publish releases.
+- `develop` collects finished features. Pushes publish the `dev` image for testing.
+- Work on `feature/<name>` branches created from `develop`, and open the PR against `develop`.
+- When `develop` is tested, open a PR from `develop` to `main`.
+
 ## Pull requests
 
 - Keep changes focused. A new inverter driver should not mix with unrelated UI work.
