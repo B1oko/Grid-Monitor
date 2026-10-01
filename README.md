@@ -61,7 +61,7 @@ has a sidebar on desktop and a tab bar on mobile, with four pages:
 | Page | What it shows |
 | --- | --- |
 | **Home** | Live energy flow and cards for solar, home, battery and grid, with grid import shown against your contracted power |
-| **History** | Power and battery charge, from the last few minutes up to the current year |
+| **History** | Live, today, yesterday and the last 7 days show every recorded sample. This month and this year show daily or monthly energy (kWh) with totals and self-sufficiency |
 | **Alerts** | Active alerts, alert history and notifications for this device |
 | **Settings** | Inverters, Alerts, Location, Data (recording and retention), Appearance (language and theme) and About |
 
@@ -159,6 +159,7 @@ uv run ruff check .
 | `GET /api/inverters/{id}/snapshot` | One-shot live reading |
 | `GET/PUT /api/settings` | Persisted app settings |
 | `GET /api/history` | Aggregated history (`inverter_id`, `from`, `to`, `resolution`) |
+| `GET /api/energy` | Energy in kWh per day or month (`inverter_id`, `from`, `to`, `resolution`, `tz`) |
 | `GET /api/alerts` | Alert history (`limit`, `active`) |
 | `GET /i18n/languages.json`, `/i18n/{lang}.json` | Available languages and translation catalogs |
 | `GET /api/push/public-key` | VAPID public key and number of subscribed devices |
