@@ -32,6 +32,8 @@ uv run ruff format .
 - Add or update tests for behavior you change.
 - Run `pytest` and `ruff` before opening the PR.
 - Update `CHANGELOG.md` under **Unreleased** for user-visible changes.
+- New or changed UI text must be added to every catalog in `app/i18n/locales/`.
+  See the translation rules in [AGENTS.md](AGENTS.md#translations).
 
 ## How to add a new inverter driver
 

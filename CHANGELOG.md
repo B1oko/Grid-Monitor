@@ -20,6 +20,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Alerts with web push notifications: grid import above the contracted power,
   no solar production in daylight, and inverter not responding
 - Alert history (`GET /api/alerts`) and an active-alert banner on the dashboard
+- English and Spanish translations. The language follows the browser and can be
+  changed in Settings → Appearance; push notifications use each device's language
+- `AGENTS.md` with working and translation rules for contributors and AI agents
+
+### Changed
+
+- New web UI: sidebar on desktop and tab bar on mobile, with Home, History,
+  Alerts and Settings pages instead of a single page with dialogs
+- Home shows the energy flow and cards for solar, home, battery and grid, with
+  grid import against the contracted power
+- Settings is split into Inverters, Alerts, Location, Data, Appearance and
+  About, with a save bar that appears only when there are unsaved changes
+- First-run setup is a page instead of a wizard dialog
+- Alert events and push subscriptions store parameters and language instead of
+  rendered text (migration `0003`, applied on startup)
 
 ## [0.1.0] - 2026-08-21
 

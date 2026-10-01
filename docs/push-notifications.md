@@ -15,8 +15,8 @@ Grid Monitor ──(1) encrypted push──► Browser push service ──(2)─
      └──(0) the phone subscribes once, over HTTPS, while on your network
 ```
 
-0. You open Grid Monitor on the device and press **Enable notifications on this
-   device**. The browser creates a subscription and the app stores it.
+0. You open Grid Monitor on the device and press **Enable notifications** on the
+   **Alerts** page. The browser creates a subscription and the app stores it.
 1. When an alert fires, Grid Monitor encrypts the message and sends it to the
    browser vendor's push service. This is an **outbound** HTTPS request.
 2. The push service delivers it to the device **wherever it is**: home Wi-Fi,
@@ -154,12 +154,12 @@ subscriptions stop working and every device has to enable notifications again.
 
 ## Step 3: Configure the alerts
 
-Open **Settings → Alerts** in Grid Monitor:
+Open **Settings → Alerts** in Grid Monitor, then **Settings → Location**:
 
 | Alert | Settings |
 | --- | --- |
 | Contracted power exceeded | Contracted power (W) and how many minutes grid import must stay above it. Grid power is positive when importing. |
-| No solar production in daylight | Minutes, power threshold (W), minimum sun elevation (°), and latitude/longitude. The alert is inactive until a location is set; **Use this device's location** fills it in. |
+| No solar production in daylight | Minutes, power threshold (W), minimum sun elevation (°), and latitude/longitude. The alert is inactive until a location is set in **Settings → Location**; **Use this device's location** fills it in. |
 | Inverter not responding | Minutes without a Modbus response. |
 
 Each alert notifies once when it fires and once when it clears. The checks run
@@ -172,7 +172,8 @@ Open Grid Monitor at its HTTPS address, for example
 
 **Android, desktop:**
 
-1. Go to **Settings → Alerts → Enable notifications on this device**.
+1. Open the **Alerts** page and press **Enable notifications** under
+   **Notifications on this device**.
 2. Allow notifications when the browser asks.
 3. Press **Send test**.
 
@@ -181,19 +182,20 @@ Open Grid Monitor at its HTTPS address, for example
 1. In Safari, tap **Share → Add to Home Screen**.
 2. Open Grid Monitor **from the Home Screen icon**. Push is not available in a
    regular Safari tab.
-3. Go to **Settings → Alerts → Enable notifications on this device**, allow
+3. Open the **Alerts** page, press **Enable notifications**, allow
    notifications, then press **Send test**.
 
 Repeat on every device that should receive alerts. To stop alerts on a
-device, press the same button again (**Disable notifications on this
-device**).
+device, press **Turn off** in the same place. Notifications arrive in the
+language the app uses on that device, and follow it when you change it in
+**Settings → Appearance**.
 
 ## Troubleshooting
 
 | Symptom | Likely cause |
 | --- | --- |
-| "Push notifications need HTTPS with a certificate this device trusts" | The page is loaded over HTTP, by IP address, or with an untrusted certificate. See step 1. |
-| "This browser does not support push notifications" | On iOS the app is open in a Safari tab instead of from the Home Screen, or the iOS version is older than 16.4. |
+| "Notifications need HTTPS with a certificate this device trusts" | The page is loaded over HTTP, by IP address, or with an untrusted certificate. See step 1. |
+| "This browser cannot receive notifications" | On iOS the app is open in a Safari tab instead of from the Home Screen, or the iOS version is older than 16.4. |
 | "Notifications are blocked for this site" | Permission was denied earlier. Re-enable it in the browser's site settings (or in iOS *Settings → Notifications → Grid Monitor*). |
 | **Send test** reports "No device accepted the notification" | The server cannot reach the push service (firewall, no outbound internet), or the subscription expired. Check the server logs, then disable and re-enable on the device. |
 | The test is sent but nothing appears | The OS is in Do Not Disturb or Focus mode, or battery optimisation is killing the browser. On Android, allow the browser to run unrestricted in the background. |
