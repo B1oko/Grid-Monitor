@@ -74,23 +74,12 @@ Each alert also notifies you when it clears. Thresholds, delays and your
 location (needed to know when it is daytime) are set in **Settings → Alerts**.
 Overload uses grid power where positive means importing from the grid.
 
-To receive notifications on a device, open **Settings → Alerts → Enable
-notifications on this device**, then **Send test**.
-
-- The app must be served over **HTTPS with a certificate the device trusts**.
-  With a self-signed or home-made certificate, install your CA on the phone
-  (Android: *Settings → Security → Install certificate → CA certificate*;
-  iOS: install the profile, then enable it under *Settings → General → About →
-  Certificate Trust Settings*). Accepting the browser warning is not enough:
-  browsers refuse to register the service worker on an untrusted certificate.
-- On iPhone/iPad (iOS 16.4+), first add the app to the Home Screen and enable
-  notifications from the installed app.
-- Notifications are delivered through the browser vendor's push service
-  (Google, Apple, Mozilla), so they reach your phone anywhere. The server only
-  needs outbound internet access; nothing has to be exposed.
-- The VAPID key pair is generated on first start and stored in
-  `$DATA_DIR/vapid_private.pem`. Keep it with your backups: if it changes,
-  every device has to enable notifications again.
+Notifications are delivered as web push, so they reach your phone anywhere
+without exposing the app to the internet. They need Grid Monitor served over
+HTTPS with a trusted certificate. See
+[docs/push-notifications.md](docs/push-notifications.md) for the full setup:
+certificates for a LAN-only service, reverse proxy examples, enabling
+notifications on Android and iOS, and troubleshooting.
 
 ## Configuration
 
