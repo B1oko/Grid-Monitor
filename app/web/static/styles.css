@@ -921,3 +921,76 @@ h2 {
   margin-top: 8px;
   min-width: 160px;
 }
+
+.settings-form .check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  margin-top: 6px;
+}
+
+.settings-form .check-label input {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+}
+
+.push-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.field-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.alert-history span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.alert-history ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.alert-history li {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.alert-history li small {
+  display: block;
+  color: var(--muted);
+}
+
+.alert-history li.active {
+  border-color: var(--grid);
+}
+
+.alert-banner {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--grid);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.alert-banner strong {
+  color: var(--grid);
+}

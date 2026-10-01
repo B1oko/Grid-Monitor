@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First-run setup wizard and settings UI
 - Optional history retention and hourly downsampling
 - Multi-arch Docker image publishing workflow
+- Alerts with web push notifications: grid import above the contracted power,
+  no solar production in daylight, and inverter not responding
+- Alert history (`GET /api/alerts`) and an active-alert banner on the dashboard
 
 ## [0.1.0] - 2026-08-21
 

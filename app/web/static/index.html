@@ -67,6 +67,30 @@
             <label>Downsample after (days, 0 = off) <input id="set-downsample" type="number" min="0" max="3650" /></label>
             <label>Timezone <input id="set-timezone" type="text" /></label>
           </fieldset>
+          <fieldset>
+            <legend>Alerts</legend>
+            <div class="push-row">
+              <button type="button" class="interval-button" id="push-toggle">Enable notifications on this device</button>
+              <button type="button" class="interval-button" id="push-test">Send test</button>
+            </div>
+            <p id="push-status" class="field-hint"></p>
+            <label class="check-label"><input id="set-overload-enabled" type="checkbox" /> Contracted power exceeded</label>
+            <label>Contracted power (W) <input id="set-overload-limit" type="number" min="100" max="100000" step="100" /></label>
+            <label>Alert after (minutes) <input id="set-overload-minutes" type="number" min="0" max="120" step="0.5" /></label>
+            <label class="check-label"><input id="set-nopv-enabled" type="checkbox" /> No solar production in daylight</label>
+            <label>Alert after (minutes) <input id="set-nopv-minutes" type="number" min="1" max="600" step="1" /></label>
+            <label>Below (W) <input id="set-nopv-threshold" type="number" min="0" max="10000" step="10" /></label>
+            <label>Sun above (degrees) <input id="set-nopv-elevation" type="number" min="0" max="60" step="1" /></label>
+            <label>Latitude <input id="set-latitude" type="number" min="-90" max="90" step="0.0001" placeholder="39.47" /></label>
+            <label>Longitude <input id="set-longitude" type="number" min="-180" max="180" step="0.0001" placeholder="-0.38" /></label>
+            <button type="button" class="interval-button" id="use-location">Use this device's location</button>
+            <label class="check-label"><input id="set-offline-enabled" type="checkbox" /> Inverter not responding</label>
+            <label>Alert after (minutes) <input id="set-offline-minutes" type="number" min="1" max="600" step="1" /></label>
+            <div class="alert-history">
+              <span>Recent alerts</span>
+              <ul id="alert-list"></ul>
+            </div>
+          </fieldset>
           <div class="modal-actions">
             <button type="submit" class="discover-button">Save</button>
             <button type="button" class="danger-button" id="delete-inverter">Remove inverter</button>
@@ -91,6 +115,8 @@
           </div>
         </div>
       </header>
+
+      <section class="alert-banner" id="alert-banner" role="alert" hidden></section>
 
       <section class="discovery-panel" aria-label="Inverter">
         <div class="discovery-info">

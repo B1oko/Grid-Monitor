@@ -7,7 +7,8 @@ from datetime import UTC
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.db.models import InverterSample
-from app.drivers.base import InverterDriver, InverterReading
+from app.drivers.base import InverterReading
+from app.services.live_manager import Readable
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class Recorder:
         self,
         *,
         inverter_id: int,
-        driver: InverterDriver,
+        driver: Readable,
         session_factory: async_sessionmaker[AsyncSession],
         interval_seconds: float,
     ) -> None:

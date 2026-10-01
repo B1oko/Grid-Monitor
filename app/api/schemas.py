@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class InverterCreate(BaseModel):
@@ -58,6 +58,18 @@ class SettingsUpdate(BaseModel):
     discovery_port_scan_timeout: float | None = Field(default=None, ge=0.1, le=5)
     discovery_probe_timeout: float | None = Field(default=None, ge=0.2, le=10)
     discovery_subnet_prefix_length: int | None = Field(default=None, ge=16, le=30)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+    alerts_check_interval_seconds: float | None = Field(default=None, ge=5, le=300)
+    alert_overload_enabled: bool | None = None
+    alert_overload_limit_w: int | None = Field(default=None, ge=100, le=100_000)
+    alert_overload_minutes: float | None = Field(default=None, ge=0, le=120)
+    alert_no_pv_enabled: bool | None = None
+    alert_no_pv_minutes: float | None = Field(default=None, ge=1, le=600)
+    alert_no_pv_threshold_w: int | None = Field(default=None, ge=0, le=10_000)
+    alert_no_pv_min_sun_elevation_deg: float | None = Field(default=None, ge=0, le=60)
+    alert_offline_enabled: bool | None = None
+    alert_offline_minutes: float | None = Field(default=None, ge=1, le=600)
 
 
 class Resolution(StrEnum):
@@ -76,3 +88,39 @@ class HistoryPoint(BaseModel):
     inverter_power_w: int | None = None
     battery_soc_pct: float | None = None
     battery_temp_c: float | None = None
+
+
+class PushKeys(BaseModel):
+    p256dh: str = Field(min_length=1, max_length=255)
+    auth: str = Field(min_length=1, max_length=255)
+
+
+class PushSubscriptionIn(BaseModel):
+    endpoint: str = Field(min_length=1, max_length=1024)
+    keys: PushKeys
+
+
+class PushUnsubscribe(BaseModel):
+    endpoint: str = Field(min_length=1, max_length=1024)
+
+
+class AlertEventOut(BaseModel):
+    id: int
+    inverter_id: int
+    kind: str
+    title: str
+    message: str
+    started_at: datetime
+    notified_at: datetime
+    resolved_at: datetime | None
+    peak_value: float | None
+
+    model_config = {"from_attributes": True}
+
+    @field_validator("started_at", "notified_at", "resolved_at")
+    @classmethod
+    def _assume_utc(cls, value: datetime | None) -> datetime | None:
+        # SQLite drops the offset; timestamps are always written in UTC.
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value

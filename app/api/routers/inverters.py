@@ -97,7 +97,7 @@ async def snapshot(inverter_id: int, state: AppState = Depends(get_state)) -> di
     if runtime is None:
         raise HTTPException(status_code=404, detail="Inverter is not running")
     try:
-        reading = await runtime.driver.read()
+        reading = await runtime.reader.read()
         return reading.model_dump(mode="json")
     finally:
         if not state.hub.is_polling:

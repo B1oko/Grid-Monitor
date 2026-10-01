@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     TZ: str = "UTC"
+    VAPID_SUBJECT: str = "https://github.com/grid-monitor/grid-monitor"
 
     @field_validator("DATA_DIR", mode="before")
     @classmethod
