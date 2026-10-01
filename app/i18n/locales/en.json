@@ -1,0 +1,240 @@
+{
+  "meta": {
+    "language_name": "English",
+    "thousands_separator": ",",
+    "decimal_separator": "."
+  },
+  "nav": {
+    "dashboard": "Home",
+    "history": "History",
+    "alerts": "Alerts",
+    "settings": "Settings"
+  },
+  "connection": {
+    "connecting": "Connecting",
+    "connected": "Live",
+    "reconnecting": "Reconnecting",
+    "error": "Inverter error"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "discard": "Discard",
+    "edit": "Edit",
+    "delete": "Delete",
+    "inverter": "Inverter",
+    "save_failed": "Could not save: {detail}",
+    "delete_failed": "Could not delete: {detail}"
+  },
+  "format": {
+    "more_than_99h": "> 99 h"
+  },
+  "series": {
+    "solar": "Solar",
+    "home": "Home",
+    "battery": "Battery",
+    "grid": "Grid",
+    "battery_soc": "Battery charge"
+  },
+  "dashboard": {
+    "energy_flow": "Energy flow",
+    "waiting": "Waiting for data…",
+    "updated": "Updated {time}",
+    "solar": "Solar",
+    "home": "Home",
+    "battery": "Battery",
+    "grid": "Grid",
+    "solar_share": "Covers {percent}% of the home",
+    "self_sufficiency": "{percent}% self-powered",
+    "battery_idle": "Idle",
+    "battery_charging": "Charging at {power}",
+    "battery_charging_eta": "Charging · full in {time}",
+    "battery_discharging": "Discharging at {power}",
+    "battery_discharging_eta": "Discharging · {time} left",
+    "grid_importing": "Importing",
+    "grid_exporting": "Exporting",
+    "grid_idle": "Balanced",
+    "of_limit": "{percent}% of {limit_w}",
+    "inverter_output": "Inverter output",
+    "latency": "Latency",
+    "address": "Address"
+  },
+  "history": {
+    "range": "Time range",
+    "ranges": {
+      "live": "Live",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "7d": "7 days",
+      "30d": "30 days",
+      "month": "This month",
+      "year": "This year"
+    },
+    "waiting": "Waiting for live samples…",
+    "no_data": "No data for this period",
+    "load_failed": "Could not load history"
+  },
+  "alerts": {
+    "active": "Active",
+    "active_title": "Active alerts",
+    "history_title": "History",
+    "all_clear": "All clear",
+    "all_clear_text": "Nothing needs your attention right now.",
+    "no_history": "No past alerts yet",
+    "load_failed": "Could not load alerts",
+    "configure": "Configure alerts",
+    "ongoing_for": "ongoing for {duration_min}",
+    "lasted": "lasted {duration_min}",
+    "overload": {
+      "name": "Contracted power exceeded",
+      "description": "Grid import stays above your contracted power.",
+      "fire": {
+        "title": "Contracted power exceeded",
+        "body": "{inverter}: importing {peak_w} from the grid (limit {limit_w}) for {duration_min}."
+      },
+      "resolve": {
+        "title": "Grid import back under the limit",
+        "body": "{inverter}: peak {peak_w}, lasted {duration_min}."
+      }
+    },
+    "no_production": {
+      "name": "No solar production",
+      "description": "The panels produce nothing while the sun is up. A tripped breaker is the usual cause.",
+      "fire": {
+        "title": "No solar production",
+        "body": "{inverter}: solar output under {threshold_w} for {duration_min} in daylight. Check the inverter breaker and the PV isolator."
+      },
+      "resolve": {
+        "title": "Solar production restored",
+        "body": "{inverter}: producing again after {duration_min}."
+      }
+    },
+    "offline": {
+      "name": "Inverter not responding",
+      "description": "The inverter stops answering on the network.",
+      "fire": {
+        "title": "Inverter not responding",
+        "body": "{inverter}: no response for {duration_min}. It may have lost power or network."
+      },
+      "resolve": {
+        "title": "Inverter back online",
+        "body": "{inverter}: responding again after {duration_min}."
+      }
+    }
+  },
+  "push": {
+    "title": "Notifications on this device",
+    "enable": "Enable notifications",
+    "disable": "Turn off",
+    "send_test": "Send test",
+    "enabled_toast": "Notifications enabled on this device",
+    "disabled_toast": "Notifications turned off on this device",
+    "change_failed": "Could not change notifications: {detail}",
+    "test_sent": "Test sent to {count} device(s)",
+    "test_none": "No device accepted the notification",
+    "test_failed": "Could not send the test: {detail}",
+    "status": {
+      "on": "This device receives alerts, even when the app is closed.",
+      "off": "Turn on notifications to get alerts on this device.",
+      "blocked": "Notifications are blocked for this site. Allow them in the browser settings.",
+      "insecure": "Notifications need HTTPS with a certificate this device trusts.",
+      "unsupported": "This browser cannot receive notifications. On iPhone, add the app to the Home Screen and open it from there."
+    },
+    "test": {
+      "title": "Grid Monitor",
+      "body": "Test notification: alerts will show up like this."
+    }
+  },
+  "discovery": {
+    "scanning": "Scanning your local network…",
+    "not_found": "No inverter found. Enter the address below.",
+    "found": "Found {count}. Pick one to fill in the form.",
+    "error": "Scan failed: {detail}",
+    "timeout": "The scan took too long. Enter the address below."
+  },
+  "inverters": {
+    "none": "No inverters yet",
+    "add": "Add inverter",
+    "add_title": "New inverter",
+    "default_name": "Inverter",
+    "name": "Name",
+    "driver": "Model",
+    "host": "IP address or host name",
+    "port": "Port",
+    "unit_id": "Modbus unit id",
+    "poll_interval": "Live refresh",
+    "poll_interval_hint": "How often live values update while the app is open.",
+    "battery_capacity": "Battery capacity",
+    "battery_capacity_hint": "Used to estimate charge and discharge times. Optional.",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "scan": "Scan network",
+    "scan_hint": "Finds compatible inverters on your local network. Only scan networks you own.",
+    "saved": "Inverter saved",
+    "added": "Inverter added",
+    "deleted": "Inverter removed",
+    "delete_confirm": "Remove {inverter}? Its history will be deleted."
+  },
+  "settings": {
+    "unsaved": "Unsaved changes",
+    "saved": "Settings saved",
+    "sections": {
+      "inverters": { "title": "Inverters", "subtitle": "Connection and battery" },
+      "alerts": { "title": "Alerts", "subtitle": "Limits and delays" },
+      "location": { "title": "Location", "subtitle": "Used to know when it is daytime" },
+      "data": { "title": "Data", "subtitle": "Recording and retention" },
+      "appearance": { "title": "Appearance", "subtitle": "Language and theme" },
+      "about": { "title": "About", "subtitle": "Version and API" }
+    },
+    "alerts": {
+      "contracted_power": "Contracted power",
+      "alert_after": "Alert after",
+      "overload_after_hint": "Short spikes shorter than this are ignored.",
+      "pv_below": "Production below",
+      "sun_above": "Only when the sun is above",
+      "sun_above_hint": "Ignores dawn, dusk and low winter sun.",
+      "needs_location": "Set your location to enable this alert.",
+      "notifications_hint": "Alerts are sent to every device with notifications enabled.",
+      "notifications_link": "Manage notifications"
+    },
+    "location": {
+      "description": "Your location is only used on this server to compute the sun's position. It is never sent anywhere.",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "use_device": "Use this device's location",
+      "unavailable": "Location is not available in this browser",
+      "failed": "Could not read the device location"
+    },
+    "data": {
+      "recorder_interval": "Recording interval",
+      "recorder_interval_hint": "How often a sample is saved to history.",
+      "retention": "Keep history for",
+      "retention_hint": "0 keeps everything.",
+      "downsample": "Compress history older than",
+      "downsample_hint": "Older samples are averaged per hour. 0 turns it off.",
+      "days": "days",
+      "timezone": "Time zone",
+      "timezone_hint": "For example Europe/Madrid."
+    },
+    "appearance": {
+      "device_only": "These preferences apply to this device only.",
+      "language": "Language",
+      "language_auto": "Automatic (browser language)",
+      "theme": "Theme",
+      "theme_system": "System",
+      "theme_light": "Light",
+      "theme_dark": "Dark"
+    },
+    "about": {
+      "version": "Version {version}",
+      "inverters": "Inverters",
+      "push_devices": "Devices with notifications",
+      "api_docs": "API documentation"
+    }
+  },
+  "setup": {
+    "title": "Welcome to Grid Monitor",
+    "intro": "Add your inverter to start monitoring. You can scan your network or type its address.",
+    "scan_warning": "Network scans probe Modbus TCP on your local subnet."
+  }
+}

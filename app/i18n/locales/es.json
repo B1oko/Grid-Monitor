@@ -1,0 +1,240 @@
+{
+  "meta": {
+    "language_name": "Español",
+    "thousands_separator": ".",
+    "decimal_separator": ","
+  },
+  "nav": {
+    "dashboard": "Inicio",
+    "history": "Historial",
+    "alerts": "Alertas",
+    "settings": "Ajustes"
+  },
+  "connection": {
+    "connecting": "Conectando",
+    "connected": "En directo",
+    "reconnecting": "Reconectando",
+    "error": "Error del inversor"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "discard": "Descartar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "inverter": "Inversor",
+    "save_failed": "No se pudo guardar: {detail}",
+    "delete_failed": "No se pudo eliminar: {detail}"
+  },
+  "format": {
+    "more_than_99h": "> 99 h"
+  },
+  "series": {
+    "solar": "Solar",
+    "home": "Casa",
+    "battery": "Batería",
+    "grid": "Red",
+    "battery_soc": "Carga de batería"
+  },
+  "dashboard": {
+    "energy_flow": "Flujo de energía",
+    "waiting": "Esperando datos…",
+    "updated": "Actualizado {time}",
+    "solar": "Solar",
+    "home": "Casa",
+    "battery": "Batería",
+    "grid": "Red",
+    "solar_share": "Cubre el {percent}% de la casa",
+    "self_sufficiency": "{percent}% autoabastecido",
+    "battery_idle": "En reposo",
+    "battery_charging": "Cargando a {power}",
+    "battery_charging_eta": "Cargando · llena en {time}",
+    "battery_discharging": "Descargando a {power}",
+    "battery_discharging_eta": "Descargando · quedan {time}",
+    "grid_importing": "Importando",
+    "grid_exporting": "Exportando",
+    "grid_idle": "Equilibrado",
+    "of_limit": "{percent}% de {limit_w}",
+    "inverter_output": "Salida del inversor",
+    "latency": "Latencia",
+    "address": "Dirección"
+  },
+  "history": {
+    "range": "Periodo",
+    "ranges": {
+      "live": "Directo",
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "7d": "7 días",
+      "30d": "30 días",
+      "month": "Este mes",
+      "year": "Este año"
+    },
+    "waiting": "Esperando muestras en directo…",
+    "no_data": "No hay datos en este periodo",
+    "load_failed": "No se pudo cargar el historial"
+  },
+  "alerts": {
+    "active": "Activa",
+    "active_title": "Alertas activas",
+    "history_title": "Historial",
+    "all_clear": "Todo en orden",
+    "all_clear_text": "Ahora mismo no hay nada que requiera tu atención.",
+    "no_history": "Todavía no hay alertas anteriores",
+    "load_failed": "No se pudieron cargar las alertas",
+    "configure": "Configurar alertas",
+    "ongoing_for": "activa desde hace {duration_min}",
+    "lasted": "duró {duration_min}",
+    "overload": {
+      "name": "Potencia contratada superada",
+      "description": "La importación de red se mantiene por encima de tu potencia contratada.",
+      "fire": {
+        "title": "Potencia contratada superada",
+        "body": "{inverter}: importando {peak_w} de la red (límite {limit_w}) durante {duration_min}."
+      },
+      "resolve": {
+        "title": "Importación de red bajo el límite",
+        "body": "{inverter}: pico de {peak_w}, duró {duration_min}."
+      }
+    },
+    "no_production": {
+      "name": "Sin producción solar",
+      "description": "Las placas no producen nada con el sol arriba. Lo habitual es que haya saltado un magnetotérmico.",
+      "fire": {
+        "title": "Sin producción solar",
+        "body": "{inverter}: producción solar por debajo de {threshold_w} durante {duration_min} con luz de día. Revisa el magnetotérmico del inversor y el seccionador de las placas."
+      },
+      "resolve": {
+        "title": "Producción solar recuperada",
+        "body": "{inverter}: vuelve a producir tras {duration_min}."
+      }
+    },
+    "offline": {
+      "name": "El inversor no responde",
+      "description": "El inversor deja de contestar en la red.",
+      "fire": {
+        "title": "El inversor no responde",
+        "body": "{inverter}: sin respuesta durante {duration_min}. Puede haberse quedado sin corriente o sin red."
+      },
+      "resolve": {
+        "title": "Inversor de nuevo en línea",
+        "body": "{inverter}: vuelve a responder tras {duration_min}."
+      }
+    }
+  },
+  "push": {
+    "title": "Notificaciones en este dispositivo",
+    "enable": "Activar notificaciones",
+    "disable": "Desactivar",
+    "send_test": "Enviar prueba",
+    "enabled_toast": "Notificaciones activadas en este dispositivo",
+    "disabled_toast": "Notificaciones desactivadas en este dispositivo",
+    "change_failed": "No se pudieron cambiar las notificaciones: {detail}",
+    "test_sent": "Prueba enviada a {count} dispositivo(s)",
+    "test_none": "Ningún dispositivo aceptó la notificación",
+    "test_failed": "No se pudo enviar la prueba: {detail}",
+    "status": {
+      "on": "Este dispositivo recibe las alertas, incluso con la app cerrada.",
+      "off": "Activa las notificaciones para recibir alertas en este dispositivo.",
+      "blocked": "Las notificaciones están bloqueadas para este sitio. Permítelas en los ajustes del navegador.",
+      "insecure": "Las notificaciones requieren HTTPS con un certificado en el que confíe este dispositivo.",
+      "unsupported": "Este navegador no puede recibir notificaciones. En iPhone, añade la app a la pantalla de inicio y ábrela desde allí."
+    },
+    "test": {
+      "title": "Grid Monitor",
+      "body": "Notificación de prueba: las alertas se verán así."
+    }
+  },
+  "discovery": {
+    "scanning": "Buscando en tu red local…",
+    "not_found": "No se ha encontrado ningún inversor. Introduce la dirección abajo.",
+    "found": "Encontrados: {count}. Elige uno para rellenar el formulario.",
+    "error": "La búsqueda ha fallado: {detail}",
+    "timeout": "La búsqueda ha tardado demasiado. Introduce la dirección abajo."
+  },
+  "inverters": {
+    "none": "Todavía no hay inversores",
+    "add": "Añadir inversor",
+    "add_title": "Nuevo inversor",
+    "default_name": "Inversor",
+    "name": "Nombre",
+    "driver": "Modelo",
+    "host": "Dirección IP o nombre de host",
+    "port": "Puerto",
+    "unit_id": "Unit id de Modbus",
+    "poll_interval": "Refresco en directo",
+    "poll_interval_hint": "Cada cuánto se actualizan los valores en directo con la app abierta.",
+    "battery_capacity": "Capacidad de la batería",
+    "battery_capacity_hint": "Sirve para estimar los tiempos de carga y descarga. Opcional.",
+    "enabled": "Activo",
+    "disabled": "Desactivado",
+    "scan": "Buscar en la red",
+    "scan_hint": "Busca inversores compatibles en tu red local. Busca solo en redes que sean tuyas.",
+    "saved": "Inversor guardado",
+    "added": "Inversor añadido",
+    "deleted": "Inversor eliminado",
+    "delete_confirm": "¿Eliminar {inverter}? Se borrará su historial."
+  },
+  "settings": {
+    "unsaved": "Cambios sin guardar",
+    "saved": "Ajustes guardados",
+    "sections": {
+      "inverters": { "title": "Inversores", "subtitle": "Conexión y batería" },
+      "alerts": { "title": "Alertas", "subtitle": "Límites y tiempos" },
+      "location": { "title": "Ubicación", "subtitle": "Para saber cuándo es de día" },
+      "data": { "title": "Datos", "subtitle": "Grabación y conservación" },
+      "appearance": { "title": "Apariencia", "subtitle": "Idioma y tema" },
+      "about": { "title": "Acerca de", "subtitle": "Versión y API" }
+    },
+    "alerts": {
+      "contracted_power": "Potencia contratada",
+      "alert_after": "Avisar tras",
+      "overload_after_hint": "Se ignoran los picos más cortos que esto.",
+      "pv_below": "Producción por debajo de",
+      "sun_above": "Solo con el sol por encima de",
+      "sun_above_hint": "Ignora el amanecer, el atardecer y el sol bajo de invierno.",
+      "needs_location": "Indica tu ubicación para activar esta alerta.",
+      "notifications_hint": "Las alertas se envían a todos los dispositivos con las notificaciones activadas.",
+      "notifications_link": "Gestionar notificaciones"
+    },
+    "location": {
+      "description": "Tu ubicación solo se usa en este servidor para calcular la posición del sol. Nunca se envía a ningún sitio.",
+      "latitude": "Latitud",
+      "longitude": "Longitud",
+      "use_device": "Usar la ubicación de este dispositivo",
+      "unavailable": "La ubicación no está disponible en este navegador",
+      "failed": "No se pudo leer la ubicación del dispositivo"
+    },
+    "data": {
+      "recorder_interval": "Intervalo de grabación",
+      "recorder_interval_hint": "Cada cuánto se guarda una muestra en el historial.",
+      "retention": "Conservar el historial",
+      "retention_hint": "0 lo conserva todo.",
+      "downsample": "Comprimir el historial de más de",
+      "downsample_hint": "Las muestras antiguas se promedian por hora. 0 lo desactiva.",
+      "days": "días",
+      "timezone": "Zona horaria",
+      "timezone_hint": "Por ejemplo Europe/Madrid."
+    },
+    "appearance": {
+      "device_only": "Estas preferencias solo se aplican a este dispositivo.",
+      "language": "Idioma",
+      "language_auto": "Automático (idioma del navegador)",
+      "theme": "Tema",
+      "theme_system": "Sistema",
+      "theme_light": "Claro",
+      "theme_dark": "Oscuro"
+    },
+    "about": {
+      "version": "Versión {version}",
+      "inverters": "Inversores",
+      "push_devices": "Dispositivos con notificaciones",
+      "api_docs": "Documentación de la API"
+    }
+  },
+  "setup": {
+    "title": "Te damos la bienvenida a Grid Monitor",
+    "intro": "Añade tu inversor para empezar. Puedes buscarlo en la red o escribir su dirección.",
+    "scan_warning": "La búsqueda prueba Modbus TCP en tu subred local."
+  }
+}

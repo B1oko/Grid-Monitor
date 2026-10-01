@@ -5,10 +5,10 @@ import base64
 import json
 import logging
 import os
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from py_vapid import Vapid01
@@ -17,6 +17,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.db.models import PushSubscription
+from app.i18n import normalize_language, translate
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +27,21 @@ PUSH_TTL_SECONDS = 6 * 60 * 60
 
 @dataclass(frozen=True)
 class Notification:
-    title: str
-    body: str
+    """Language-neutral notification: text is rendered per device from i18n keys."""
+
+    title_key: str
+    body_key: str
     tag: str
+    params: dict[str, Any] = field(default_factory=dict)
     url: str = "/"
+
+    def render(self, language: str) -> dict[str, str]:
+        return {
+            "title": translate(self.title_key, language, **self.params),
+            "body": translate(self.body_key, language, **self.params),
+            "tag": self.tag,
+            "url": self.url,
+        }
 
 
 class Notifier(Protocol):
@@ -74,8 +86,15 @@ class WebPushNotifier:
         return application_server_key(self._vapid)
 
     async def subscribe(
-        self, *, endpoint: str, p256dh: str, auth: str, user_agent: str | None
+        self,
+        *,
+        endpoint: str,
+        p256dh: str,
+        auth: str,
+        user_agent: str | None,
+        language: str | None = None,
     ) -> None:
+        language = normalize_language(language)
         async with self._session_factory() as session:
             existing = (
                 await session.execute(
@@ -89,12 +108,14 @@ class WebPushNotifier:
                         p256dh=p256dh,
                         auth=auth,
                         user_agent=(user_agent or "")[:255] or None,
+                        language=language,
                         created_at=datetime.now(UTC),
                     )
                 )
             else:
                 existing.p256dh = p256dh
                 existing.auth = auth
+                existing.language = language
             await session.commit()
 
     async def unsubscribe(self, endpoint: str) -> None:
@@ -113,10 +134,14 @@ class WebPushNotifier:
         async with self._session_factory() as session:
             subscriptions = (await session.execute(select(PushSubscription))).scalars().all()
 
-        payload = json.dumps(asdict(notification))
+        payloads: dict[str, str] = {}
         delivered = 0
         gone: list[int] = []
         for sub in subscriptions:
+            language = normalize_language(sub.language)
+            if language not in payloads:
+                payloads[language] = json.dumps(notification.render(language))
+            payload = payloads[language]
             try:
                 await asyncio.to_thread(
                     webpush,
