@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from app.api.schemas import AlertEventOut
 from app.core.settings_store import DEFAULT_SETTINGS, SettingsStore
 from app.db.engine import apply_migrations, make_engine, make_session_factory
 from app.db.models import AlertEvent, Inverter
@@ -190,6 +191,9 @@ async def test_alert_service_overload_cycle(alert_env) -> None:
     events = await _events(env.session_factory)
     assert events[0].resolved_at is not None
     assert events[0].peak_value == 6200
+    out = AlertEventOut.model_validate(events[0]).model_dump(mode="json")
+    assert datetime.fromisoformat(out["notified_at"]).utcoffset() == timedelta(0)
+    assert datetime.fromisoformat(out["resolved_at"]).utcoffset() == timedelta(0)
 
 
 async def test_alert_service_offline(alert_env) -> None:

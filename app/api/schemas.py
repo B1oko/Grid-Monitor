@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class InverterCreate(BaseModel):
@@ -116,3 +116,11 @@ class AlertEventOut(BaseModel):
     peak_value: float | None
 
     model_config = {"from_attributes": True}
+
+    @field_validator("started_at", "notified_at", "resolved_at")
+    @classmethod
+    def _assume_utc(cls, value: datetime | None) -> datetime | None:
+        # SQLite drops the offset; timestamps are always written in UTC.
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value
