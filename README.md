@@ -39,6 +39,7 @@ The UI will be at `http://localhost:8080`.
 | --- | --- |
 | `latest` | Latest stable release |
 | `edge` | Build from `main` |
+| `dev` | Build from `develop` (pre-release testing) |
 | `0.1.0`, `0.1`, `0` | Semver from a git tag `v0.1.0` |
 
 Images are published to GitHub Container Registry and, when configured, Docker Hub.
