@@ -40,6 +40,6 @@ async def unsubscribe(body: PushUnsubscribe, state: AppState = Depends(get_state
 @router.post("/test")
 async def send_test(state: AppState = Depends(get_state)) -> dict[str, int]:
     delivered = await state.push.send(
-        Notification(title_key="push.test.title", body_key="push.test.body", tag="test")
+        Notification(title_key="push.test.title", body_key="push.test.body", tag="test", alarm=True)
     )
     return {"delivered": delivered}

@@ -325,6 +325,7 @@ class AlertService:
                         params=params,
                         tag=f"{rule.kind}-{inverter_id}",
                         url="/#/alerts",
+                        alarm=action == "fire",
                     )
                 )
 

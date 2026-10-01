@@ -34,13 +34,16 @@ class Notification:
     tag: str
     params: dict[str, Any] = field(default_factory=dict)
     url: str = "/"
+    # Alarms vibrate, stay on screen until dismissed and sound a siren in open tabs.
+    alarm: bool = False
 
-    def render(self, language: str) -> dict[str, str]:
+    def render(self, language: str) -> dict[str, Any]:
         return {
             "title": translate(self.title_key, language, **self.params),
             "body": translate(self.body_key, language, **self.params),
             "tag": self.tag,
             "url": self.url,
+            "alarm": self.alarm,
         }
 
 
