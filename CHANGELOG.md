@@ -35,6 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First-run setup is a page instead of a wizard dialog
 - Alert events and push subscriptions store parameters and language instead of
   rendered text (migration `0003`, applied on startup)
+- History: today, yesterday and 7 days plot every recorded sample on a real
+  time axis, with breaks where data is missing. Battery level has its own chart
+- History: this month and this year show energy per day or month in kWh
+  (solar, home, grid import/export, battery charge/discharge) with period
+  totals and self-sufficiency, split by the browser's time zone
+  (`GET /api/energy`). The 30-day range was removed
+- Chart and dashboard colors changed to a palette that stays distinguishable
+  with color-vision deficiency in light and dark themes
 
 ## [0.1.0] - 2026-08-21
 

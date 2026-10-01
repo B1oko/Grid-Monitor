@@ -1,4 +1,4 @@
-const CACHE = "grid-monitor-v4";
+const CACHE = "grid-monitor-v5";
 const PRECACHE = [
   "/",
   "/manifest.json",

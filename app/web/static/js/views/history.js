@@ -1,58 +1,96 @@
 import { api } from "../api.js";
-import { PowerChart } from "../charts.js";
+import { EnergyChart, PowerChart, SocChart } from "../charts.js";
 import { esc } from "../format.js";
-import { getLanguage, t } from "../i18n.js";
+import { formatNumber, getLanguage, t } from "../i18n.js";
 import { on, state } from "../state.js";
 import { emptyState } from "../ui.js";
 
+const LIVE_WINDOW_MS = 10 * 60 * 1000;
+const REFRESH_MS = 60 * 1000;
+
+function startOfDay(date, offsetDays = 0) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + offsetDays);
+  return d;
+}
+
+// Power ranges show every stored sample on a time axis. Energy ranges show one
+// bar per day or month, split in the browser's time zone.
 const RANGES = {
-  live: null,
-  today: () => {
-    const from = new Date();
-    from.setHours(0, 0, 0, 0);
-    return { from, to: new Date(), resolution: "minute" };
+  live: { kind: "live" },
+  today: {
+    kind: "power",
+    window: (now) => ({ from: startOfDay(now), to: now, axisMax: startOfDay(now, 1) }),
+    refresh: true,
   },
-  yesterday: () => {
-    const from = new Date();
-    from.setDate(from.getDate() - 1);
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(from);
-    to.setHours(23, 59, 59, 999);
-    return { from, to, resolution: "hour" };
+  yesterday: {
+    kind: "power",
+    window: (now) => ({ from: startOfDay(now, -1), to: startOfDay(now) }),
   },
-  "7d": () => {
-    const to = new Date();
-    const from = new Date(to);
-    from.setDate(from.getDate() - 7);
-    return { from, to, resolution: "hour" };
+  "7d": {
+    kind: "power",
+    window: (now) => ({ from: new Date(now.getTime() - 7 * 24 * 3600 * 1000), to: now }),
+    refresh: true,
   },
-  "30d": () => {
-    const to = new Date();
-    const from = new Date(to);
-    from.setDate(from.getDate() - 30);
-    return { from, to, resolution: "day" };
+  month: {
+    kind: "energy",
+    resolution: "day",
+    refresh: true,
+    periods: (now) => {
+      const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      return Array.from({ length: days }, (_, i) => new Date(now.getFullYear(), now.getMonth(), i + 1));
+    },
   },
-  month: () => {
-    const now = new Date();
-    return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now, resolution: "day" };
-  },
-  year: () => {
-    const now = new Date();
-    return { from: new Date(now.getFullYear(), 0, 1), to: now, resolution: "month" };
+  year: {
+    kind: "energy",
+    resolution: "month",
+    refresh: true,
+    periods: (now) => Array.from({ length: 12 }, (_, i) => new Date(now.getFullYear(), i, 1)),
   },
 };
 
 let activeRange = "live";
 
-function label(ts, resolution) {
-  const date = new Date(ts);
+function periodKey(date, resolution) {
+  return resolution === "month"
+    ? `${date.getFullYear()}-${date.getMonth()}`
+    : `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
+function periodLabels(date, resolution) {
   const lang = getLanguage();
-  if (resolution === "minute") return date.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
-  if (resolution === "hour") {
-    return date.toLocaleString(lang, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  if (resolution === "month") {
+    return {
+      label: date.toLocaleDateString(lang, { month: "short" }),
+      title: date.toLocaleDateString(lang, { month: "long", year: "numeric" }),
+    };
   }
-  if (resolution === "day") return date.toLocaleDateString(lang, { day: "2-digit", month: "2-digit" });
-  return date.toLocaleDateString(lang, { month: "short", year: "numeric" });
+  return {
+    label: String(date.getDate()),
+    title: date.toLocaleDateString(lang, { weekday: "long", day: "numeric", month: "long" }),
+  };
+}
+
+function kwh(value) {
+  return `${formatNumber(value, value >= 100 ? 0 : 1)} kWh`;
+}
+
+function summary(rows) {
+  const sum = (key) => rows.reduce((total, row) => total + (row[key] || 0), 0);
+  const home = sum("home_kwh");
+  const imported = sum("grid_import_kwh");
+  const self = home > 0 ? Math.round(Math.max(0, Math.min(1, 1 - imported / home)) * 100) : null;
+  const items = [
+    ["solar", kwh(sum("solar_kwh"))],
+    ["home", kwh(home)],
+    ["imported", kwh(imported)],
+    ["exported", kwh(sum("grid_export_kwh"))],
+    ["self_sufficiency", self == null ? "--" : `${self} %`],
+  ];
+  return items
+    .map(([key, value]) => `<div><span>${esc(t(`history.summary.${key}`))}</span><strong>${esc(value)}</strong></div>`)
+    .join("");
 }
 
 export function renderHistory(root) {
@@ -68,22 +106,62 @@ export function renderHistory(root) {
           )
           .join("")}
       </div>
+      <section class="stat-strip energy-summary" data-v="summary" hidden></section>
       <section class="card chart-card">
         <div class="chart-wrap">
-          <canvas></canvas>
+          <canvas data-v="main"></canvas>
           <div class="chart-empty" hidden></div>
         </div>
+        <div class="soc-block" data-v="soc" hidden>
+          <div class="soc-title">${esc(t("series.battery_soc"))}</div>
+          <div class="soc-wrap"><canvas></canvas></div>
+        </div>
+        <p class="chart-caption muted small" data-v="caption" hidden>${esc(t("history.energy_caption"))}</p>
       </section>
     </div>`;
 
-  const chart = new PowerChart(root.querySelector("canvas"));
+  const $ = (key) => root.querySelector(`[data-v="${key}"]`);
+  const mainCanvas = $("main");
+  const socBlock = $("soc");
+  const summaryEl = $("summary");
+  const caption = $("caption");
   const empty = root.querySelector(".chart-empty");
+
+  const power = new PowerChart(mainCanvas);
+  const energy = new EnergyChart(mainCanvas);
+  const soc = new SocChart(socBlock.querySelector("canvas"));
   let loadToken = 0;
 
+  function clearCharts() {
+    power.destroy();
+    energy.destroy();
+    soc.destroy();
+  }
+
+  function layout(kind) {
+    summaryEl.hidden = kind !== "energy";
+    caption.hidden = kind !== "energy";
+    if (kind === "energy") socBlock.hidden = true;
+    empty.hidden = true;
+  }
+
   function showEmpty(title, text = "") {
-    chart.destroy();
+    clearCharts();
+    summaryEl.hidden = true;
+    caption.hidden = true;
+    socBlock.hidden = true;
     empty.innerHTML = emptyState("chart", title, text);
     empty.hidden = false;
+  }
+
+  function drawPower(rows, window, live = false) {
+    const hasSoc = rows.some((row) => row.battery_soc_pct != null);
+    layout("power");
+    socBlock.hidden = !hasSoc;
+    if (!live) energy.destroy();
+    power.show(rows, { ...window, live });
+    if (hasSoc) soc.show(rows, { ...window, live });
+    else soc.destroy();
   }
 
   function drawLive() {
@@ -92,38 +170,72 @@ export function renderHistory(root) {
       showEmpty(t("history.waiting"));
       return;
     }
-    empty.hidden = true;
-    chart.show(
-      state.samples,
-      state.samples.map((row) => label(row.t, "minute")),
-      { live: true }
-    );
+    const max = Date.now();
+    drawPower(state.samples, { min: max - LIVE_WINDOW_MS, max }, Boolean(power.chart));
   }
 
-  async function loadRange(range) {
-    const token = ++loadToken;
-    if (range === "live") {
-      drawLive();
-      return;
-    }
-    if (!state.selectedId) return;
-    const { from, to, resolution } = RANGES[range]();
+  async function loadPower(range, token) {
+    const now = new Date();
+    const { from, to, axisMax } = range.window(now);
     const params = new URLSearchParams({
       inverter_id: String(state.selectedId),
       from: from.toISOString(),
       to: to.toISOString(),
-      resolution,
+      resolution: "minute",
     });
+    const rows = await api.get(`/api/history?${params}`);
+    if (token !== loadToken) return;
+    if (!rows.length) {
+      showEmpty(t("history.no_data"));
+      return;
+    }
+    const samples = rows.map((row) => ({ ...row, t: Date.parse(row.ts) }));
+    drawPower(samples, { min: from.getTime(), max: (axisMax || to).getTime() });
+  }
+
+  async function loadEnergy(range, token) {
+    const now = new Date();
+    const periods = range.periods(now);
+    const params = new URLSearchParams({
+      inverter_id: String(state.selectedId),
+      from: periods[0].toISOString(),
+      to: now.toISOString(),
+      resolution: range.resolution,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    });
+    const rows = await api.get(`/api/energy?${params}`);
+    if (token !== loadToken) return;
+    if (!rows.length) {
+      showEmpty(t("history.no_data"));
+      return;
+    }
+    const byKey = new Map(rows.map((row) => [periodKey(new Date(row.ts), range.resolution), row]));
+    const items = periods.map((date) => ({
+      ...periodLabels(date, range.resolution),
+      row: byKey.get(periodKey(date, range.resolution)),
+    }));
+    layout("energy");
+    power.destroy();
+    soc.destroy();
+    summaryEl.innerHTML = summary(rows);
+    energy.show(items, { titles: items.map((item) => item.title) });
+  }
+
+  async function loadRange(key, { quiet = false } = {}) {
+    const token = ++loadToken;
+    const range = RANGES[key];
+    [power, energy, soc].forEach((chart) => {
+      chart.quiet = quiet;
+    });
+    if (range.kind === "live") {
+      clearCharts();
+      drawLive();
+      return;
+    }
+    if (!state.selectedId) return;
     try {
-      const rows = await api.get(`/api/history?${params}`);
-      if (token !== loadToken) return;
-      if (!rows.length) {
-        showEmpty(t("history.no_data"));
-        return;
-      }
-      empty.hidden = true;
-      const bar = resolution === "day" || resolution === "month";
-      chart.show(rows, rows.map((row) => label(row.ts, resolution)), { bar });
+      if (range.kind === "energy") await loadEnergy(range, token);
+      else await loadPower(range, token);
     } catch (error) {
       if (token === loadToken) showEmpty(t("history.load_failed"), error.message);
     }
@@ -138,7 +250,15 @@ export function renderHistory(root) {
   );
 
   loadRange(activeRange);
-  const onTheme = () => chart.refreshTheme();
+
+  // Ranges that end now pick up new samples while the page stays open.
+  const timer = setInterval(() => {
+    if (RANGES[activeRange].refresh && document.visibilityState === "visible") {
+      loadRange(activeRange, { quiet: true });
+    }
+  }, REFRESH_MS);
+
+  const onTheme = () => [power, energy, soc].forEach((chart) => chart.refreshTheme());
   window.addEventListener("themechange", onTheme);
   const offs = [
     on("sample", drawLive),
@@ -146,8 +266,9 @@ export function renderHistory(root) {
     on("inverter", () => loadRange(activeRange)),
   ];
   return () => {
+    clearInterval(timer);
     offs.forEach((off) => off());
     window.removeEventListener("themechange", onTheme);
-    chart.destroy();
+    clearCharts();
   };
 }

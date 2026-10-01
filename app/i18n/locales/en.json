@@ -34,7 +34,11 @@
     "home": "Home",
     "battery": "Battery",
     "grid": "Grid",
-    "battery_soc": "Battery charge"
+    "battery_soc": "Battery charge",
+    "grid_import": "From grid",
+    "grid_export": "To grid",
+    "battery_charge": "To battery",
+    "battery_discharge": "From battery"
   },
   "dashboard": {
     "energy_flow": "Energy flow",
@@ -66,13 +70,26 @@
       "today": "Today",
       "yesterday": "Yesterday",
       "7d": "7 days",
-      "30d": "30 days",
       "month": "This month",
       "year": "This year"
     },
     "waiting": "Waiting for live samples…",
     "no_data": "No data for this period",
-    "load_failed": "Could not load history"
+    "load_failed": "Could not load history",
+    "energy_caption": "Above the line: where your energy came from. Below: where it went.",
+    "direction": {
+      "charging": "charging",
+      "discharging": "discharging",
+      "importing": "importing",
+      "exporting": "exporting"
+    },
+    "summary": {
+      "solar": "Solar produced",
+      "home": "Home use",
+      "imported": "From grid",
+      "exported": "To grid",
+      "self_sufficiency": "Self-sufficiency"
+    }
   },
   "alerts": {
     "active": "Active",

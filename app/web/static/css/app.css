@@ -11,18 +11,20 @@
   --accent: #2f6f73;
   --accent-ink: #ffffff;
   --accent-soft: #e2efef;
-  --load: #2f6f73;
-  --solar: #d49c24;
-  --battery: #5f8f45;
-  --grid: #b65d4c;
+  /* Series colors, validated for color-vision deficiency in both themes.
+     Shared by the dashboard and the history charts. */
+  --solar: #eda100;
+  --load: #2a78d6;
+  --battery: #008300;
+  --grid: #e87ba4;
   --danger: #bc5144;
   --danger-soft: #fbecea;
   --warn: #c98a12;
   --ok: #4f8a3c;
   --node-solar: #fdf3da;
-  --node-grid: #faeae7;
-  --node-home: #daeef0;
-  --node-battery: #e6f0df;
+  --node-grid: #fcebf2;
+  --node-home: #e3eefb;
+  --node-battery: #e0f0e0;
   --shadow: 0 1px 2px rgba(25, 34, 30, 0.04), 0 8px 24px rgba(25, 34, 30, 0.06);
   --radius: 16px;
   --radius-sm: 10px;
@@ -44,10 +46,14 @@
   --accent-soft: #17302f;
   --danger: #e07a6c;
   --danger-soft: #2e1a17;
+  --solar: #c98500;
+  --load: #3987e5;
+  --battery: #008300;
+  --grid: #d55181;
   --node-solar: #2e2610;
-  --node-grid: #2e1610;
-  --node-home: #102420;
-  --node-battery: #182610;
+  --node-grid: #2e1222;
+  --node-home: #0f1d2e;
+  --node-battery: #0e2410;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
@@ -65,10 +71,14 @@
     --accent-soft: #17302f;
     --danger: #e07a6c;
     --danger-soft: #2e1a17;
+    --solar: #c98500;
+    --load: #3987e5;
+    --battery: #008300;
+    --grid: #d55181;
     --node-solar: #2e2610;
-    --node-grid: #2e1610;
-    --node-home: #102420;
-    --node-battery: #182610;
+    --node-grid: #2e1222;
+    --node-home: #0f1d2e;
+    --node-battery: #0e2410;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
   }
 }
@@ -1225,6 +1235,42 @@ input[type="number"]::-webkit-inner-spin-button {
   position: relative;
   height: min(62vh, 460px);
   min-height: 300px;
+}
+
+.soc-block {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.soc-title {
+  padding: 0 4px 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.soc-wrap {
+  position: relative;
+  height: 110px;
+}
+
+.chart-caption {
+  margin: 8px 4px 4px;
+}
+
+.energy-summary {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 640px) {
+  .energy-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .energy-summary > div:last-child {
+    grid-column: 1 / -1;
+  }
 }
 
 .chart-empty {

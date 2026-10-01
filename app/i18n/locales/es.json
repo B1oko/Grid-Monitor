@@ -34,7 +34,11 @@
     "home": "Casa",
     "battery": "Batería",
     "grid": "Red",
-    "battery_soc": "Carga de batería"
+    "battery_soc": "Carga de batería",
+    "grid_import": "De la red",
+    "grid_export": "A la red",
+    "battery_charge": "A la batería",
+    "battery_discharge": "De la batería"
   },
   "dashboard": {
     "energy_flow": "Flujo de energía",
@@ -66,13 +70,26 @@
       "today": "Hoy",
       "yesterday": "Ayer",
       "7d": "7 días",
-      "30d": "30 días",
       "month": "Este mes",
       "year": "Este año"
     },
     "waiting": "Esperando muestras en directo…",
     "no_data": "No hay datos en este periodo",
-    "load_failed": "No se pudo cargar el historial"
+    "load_failed": "No se pudo cargar el historial",
+    "energy_caption": "Por encima de la línea: de dónde vino la energía. Por debajo: a dónde fue.",
+    "direction": {
+      "charging": "cargando",
+      "discharging": "descargando",
+      "importing": "importando",
+      "exporting": "exportando"
+    },
+    "summary": {
+      "solar": "Producción solar",
+      "home": "Consumo de casa",
+      "imported": "De la red",
+      "exported": "A la red",
+      "self_sufficiency": "Autosuficiencia"
+    }
   },
   "alerts": {
     "active": "Activa",
