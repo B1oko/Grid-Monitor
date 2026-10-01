@@ -11,14 +11,26 @@ from sqlalchemy import select
 
 from app import __version__
 from app.api.deps import AppState
-from app.api.routers import discovery, drivers, health, history, inverters, settings, ui
+from app.api.routers import (
+    alerts,
+    discovery,
+    drivers,
+    health,
+    history,
+    inverters,
+    push,
+    settings,
+    ui,
+)
 from app.core.config import get_settings
 from app.core.settings_store import SettingsStore
 from app.db.engine import apply_migrations, make_engine, make_session_factory
 from app.db.models import Inverter
 from app.drivers.registry import load_drivers
+from app.services.alerts import AlertService
 from app.services.discovery import InverterDiscovery
 from app.services.live_manager import LiveHub
+from app.services.notifier import WebPushNotifier, load_or_create_vapid
 from app.services.retention import RetentionService
 from app.services.supervisor import InverterSupervisor
 
@@ -67,6 +79,17 @@ async def lifespan(app: FastAPI):
         subnet_prefix_length=int(cfg["discovery_subnet_prefix_length"]),
     )
     retention = RetentionService(session_factory, engine.dialect.name)
+    push_notifier = WebPushNotifier(
+        session_factory=session_factory,
+        vapid=load_or_create_vapid(settings.DATA_DIR),
+        subject=settings.VAPID_SUBJECT,
+    )
+    alert_service = AlertService(
+        session_factory=session_factory,
+        settings_store=settings_store,
+        supervisor=supervisor,
+        notifiers=[push_notifier],
+    )
 
     state = AppState(
         engine=engine,
@@ -76,6 +99,8 @@ async def lifespan(app: FastAPI):
         hub=hub,
         discovery=discovery_service,
         retention=retention,
+        push=push_notifier,
+        alerts=alert_service,
     )
     app.state.core = state
 
@@ -84,9 +109,11 @@ async def lifespan(app: FastAPI):
     await supervisor.reload(list(inverters_list))
 
     state.retention_task = asyncio.create_task(_retention_loop(state), name="retention")
+    await alert_service.start()
 
     yield
 
+    await alert_service.stop()
     task = state.retention_task
     if task is not None:
         task.cancel()
@@ -108,3 +135,5 @@ app.include_router(settings.router)
 app.include_router(inverters.router)
 app.include_router(discovery.router)
 app.include_router(history.router)
+app.include_router(alerts.router)
+app.include_router(push.router)

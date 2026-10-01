@@ -22,15 +22,17 @@ def time_bucket(column: SQLColumn, resolution: str, dialect_name: str) -> Column
     return func.strftime(fmt, column)
 
 
-def serialize_bucket_ts(value: object) -> str:
+def parse_bucket_ts(value: object) -> datetime:
+    """Return a bucket value from ``time_bucket`` as an aware UTC datetime."""
     if isinstance(value, str):
-        normalized = value.replace(" ", "T")
-        parsed = datetime.fromisoformat(normalized)
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=UTC)
-        return parsed.isoformat()
+        value = datetime.fromisoformat(value.replace(" ", "T"))
     if isinstance(value, datetime):
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=UTC)
-        return value.isoformat()
-    raise TypeError(f"Cannot serialize timestamp {value!r}")
+        return value.replace(tzinfo=UTC) if value.tzinfo is None else value
+    raise TypeError(f"Cannot parse timestamp {value!r}")
+
+
+def serialize_bucket_ts(value: object) -> str:
+    try:
+        return parse_bucket_ts(value).isoformat()
+    except TypeError as exc:
+        raise TypeError(f"Cannot serialize timestamp {value!r}") from exc

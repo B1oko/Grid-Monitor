@@ -16,6 +16,18 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "discovery_port_scan_timeout": 0.5,
     "discovery_probe_timeout": 2.0,
     "discovery_subnet_prefix_length": 24,
+    "latitude": None,
+    "longitude": None,
+    "alerts_check_interval_seconds": 10.0,
+    "alert_overload_enabled": True,
+    "alert_overload_limit_w": 5500,
+    "alert_overload_minutes": 1.0,
+    "alert_no_pv_enabled": True,
+    "alert_no_pv_minutes": 30.0,
+    "alert_no_pv_threshold_w": 50,
+    "alert_no_pv_min_sun_elevation_deg": 15.0,
+    "alert_offline_enabled": True,
+    "alert_offline_minutes": 10.0,
 }
 
 

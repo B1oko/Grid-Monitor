@@ -19,12 +19,21 @@ uv run ruff check .
 uv run ruff format .
 ```
 
+## Branches
+
+- `main` is the stable branch. Pushes publish the `edge` image; tags `v*` publish releases.
+- `develop` collects finished features. Pushes publish the `dev` image for testing.
+- Work on `feature/<name>` branches created from `develop`, and open the PR against `develop`.
+- When `develop` is tested, open a PR from `develop` to `main`.
+
 ## Pull requests
 
 - Keep changes focused. A new inverter driver should not mix with unrelated UI work.
 - Add or update tests for behavior you change.
 - Run `pytest` and `ruff` before opening the PR.
 - Update `CHANGELOG.md` under **Unreleased** for user-visible changes.
+- New or changed UI text must be added to every catalog in `app/i18n/locales/`.
+  See the translation rules in [AGENTS.md](AGENTS.md#translations).
 
 ## How to add a new inverter driver
 

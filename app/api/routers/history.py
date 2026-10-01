@@ -1,13 +1,15 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 
 from app.api.deps import AppState, get_state
 from app.api.schemas import Resolution
 from app.db.models import InverterSample
 from app.db.timebucket import serialize_bucket_ts, time_bucket
+from app.services.energy import energy_totals
 
 router = APIRouter(prefix="/api", tags=["history"])
 
@@ -65,3 +67,28 @@ async def get_history(
         }
         for row in rows
     ]
+
+
+@router.get("/energy")
+async def get_energy(
+    inverter_id: Annotated[int, Query()],
+    from_: Annotated[datetime, Query(alias="from")],
+    to: Annotated[datetime, Query()],
+    state: AppState = Depends(get_state),
+    resolution: Annotated[Literal["day", "month"], Query()] = "day",
+    tz: Annotated[str, Query(description="IANA time zone used to split days and months")] = "UTC",
+) -> list[dict]:
+    try:
+        zone = ZoneInfo(tz)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=f"Unknown time zone {tz!r}") from exc
+    async with state.session_factory() as session:
+        return await energy_totals(
+            session,
+            dialect=state.engine.dialect.name,
+            inverter_id=inverter_id,
+            start=from_,
+            end=to,
+            tz=zone,
+            resolution=resolution,
+        )
