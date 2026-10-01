@@ -76,6 +76,7 @@ class PushSubscription(Base):
     p256dh: Mapped[str] = mapped_column(String(255), nullable=False)
     auth: Mapped[str] = mapped_column(String(255), nullable=False)
     user_agent: Mapped[str | None] = mapped_column(String(255))
+    language: Mapped[str] = mapped_column(String(16), nullable=False, default="en")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
@@ -95,3 +96,4 @@ class AlertEvent(Base):
     )
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     peak_value: Mapped[float | None] = mapped_column(Float)
+    params: Mapped[dict[str, Any] | None] = mapped_column(JSON)

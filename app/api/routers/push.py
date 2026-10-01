@@ -26,6 +26,7 @@ async def subscribe(
         p256dh=body.keys.p256dh,
         auth=body.keys.auth,
         user_agent=request.headers.get("user-agent"),
+        language=body.language or request.headers.get("accept-language"),
     )
     return Response(status_code=204)
 
@@ -39,10 +40,6 @@ async def unsubscribe(body: PushUnsubscribe, state: AppState = Depends(get_state
 @router.post("/test")
 async def send_test(state: AppState = Depends(get_state)) -> dict[str, int]:
     delivered = await state.push.send(
-        Notification(
-            title="Grid Monitor",
-            body="Test notification: alerts will show up like this.",
-            tag="test",
-        )
+        Notification(title_key="push.test.title", body_key="push.test.body", tag="test")
     )
     return {"delivered": delivered}

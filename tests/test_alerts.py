@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -24,22 +25,22 @@ from app.services.alerts import (
 from app.services.notifier import Notification
 from app.services.sun import solar_elevation
 
-VALENCIA = (39.47, -0.38)
+LOCATION = (39.47, -0.38)
 NOON_JUNE = datetime(2026, 6, 21, 12, 0, tzinfo=UTC)
 MIDNIGHT_JUNE = datetime(2026, 6, 21, 23, 30, tzinfo=UTC)
 
 
 def cfg(**overrides: object) -> dict[str, object]:
     merged = dict(DEFAULT_SETTINGS)
-    merged.update(latitude=VALENCIA[0], longitude=VALENCIA[1])
+    merged.update(latitude=LOCATION[0], longitude=LOCATION[1])
     merged.update(overrides)
     return merged
 
 
 def test_solar_elevation_valencia() -> None:
-    assert 70 < solar_elevation(*VALENCIA, NOON_JUNE) < 75
-    assert solar_elevation(*VALENCIA, MIDNIGHT_JUNE) < -20
-    assert 20 < solar_elevation(*VALENCIA, datetime(2026, 12, 21, 12, 0, tzinfo=UTC)) < 30
+    assert 70 < solar_elevation(*LOCATION, NOON_JUNE) < 75
+    assert solar_elevation(*LOCATION, MIDNIGHT_JUNE) < -20
+    assert 20 < solar_elevation(*LOCATION, datetime(2026, 12, 21, 12, 0, tzinfo=UTC)) < 30
 
 
 def test_tracker_fires_after_delay_and_resolves() -> None:
@@ -135,8 +136,8 @@ async def alert_env(tmp_path: Path):
     store = SettingsStore(session_factory)
     await store.update(
         {
-            "latitude": VALENCIA[0],
-            "longitude": VALENCIA[1],
+            "latitude": LOCATION[0],
+            "longitude": LOCATION[1],
             "alert_overload_limit_w": 5500,
             "alert_overload_minutes": 1.0,
         }
@@ -175,8 +176,9 @@ async def test_alert_service_overload_cycle(alert_env) -> None:
         await env.service.check_once()
         env.clock.now += timedelta(seconds=10)
 
-    assert [n.title for n in env.notifier.sent] == ["Contracted power exceeded"]
-    assert "6,200 W" in env.notifier.sent[0].body
+    assert [n.title_key for n in env.notifier.sent] == ["alerts.overload.fire.title"]
+    assert "6,200 W" in env.notifier.sent[0].render("en")["body"]
+    assert "6.200 W" in env.notifier.sent[0].render("es")["body"]
     events = await _events(env.session_factory)
     assert len(events) == 1
     assert events[0].kind == "overload"
@@ -187,10 +189,12 @@ async def test_alert_service_overload_cycle(alert_env) -> None:
         await env.service.check_once()
         env.clock.now += timedelta(seconds=10)
 
-    assert env.notifier.sent[-1].title == "Grid import back under the limit"
+    assert env.notifier.sent[-1].title_key == "alerts.overload.resolve.title"
     events = await _events(env.session_factory)
     assert events[0].resolved_at is not None
     assert events[0].peak_value == 6200
+    assert events[0].params["limit_w"] == 5500
+    assert events[0].title == "Contracted power exceeded"
     out = AlertEventOut.model_validate(events[0]).model_dump(mode="json")
     assert datetime.fromisoformat(out["notified_at"]).utcoffset() == timedelta(0)
     assert datetime.fromisoformat(out["resolved_at"]).utcoffset() == timedelta(0)
@@ -202,7 +206,7 @@ async def test_alert_service_offline(alert_env) -> None:
     for _ in range(61):
         await env.service.check_once()
         env.clock.now += timedelta(seconds=10)
-    assert [n.title for n in env.notifier.sent] == ["Inverter not responding"]
+    assert [n.title_key for n in env.notifier.sent] == ["alerts.offline.fire.title"]
 
 
 def test_push_api(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -219,11 +223,24 @@ def test_push_api(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     assert client.post("/api/push/subscribe", json=sub).status_code == 204
     assert client.get("/api/push/public-key").json()["subscriptions"] == 1
 
+    spanish = {
+        "endpoint": "https://push.example.test/es",
+        "keys": {"p256dh": "p256", "auth": "auth"},
+        "language": "es-ES",
+    }
+    assert client.post("/api/push/subscribe", json=spanish).status_code == 204
+
     sent: list[dict] = []
     monkeypatch.setattr("app.services.notifier.webpush", lambda **kwargs: sent.append(kwargs))
     result = client.post("/api/push/test")
-    assert result.json() == {"delivered": 1}
-    assert sent[0]["subscription_info"]["endpoint"] == sub["endpoint"]
+    assert result.json() == {"delivered": 2}
+    bodies = {s["subscription_info"]["endpoint"]: json.loads(s["data"])["body"] for s in sent}
+    assert bodies[sub["endpoint"]].startswith("Test notification")
+    assert bodies[spanish["endpoint"]].startswith("Notificación de prueba")
+    assert (
+        client.post("/api/push/unsubscribe", json={"endpoint": spanish["endpoint"]}).status_code
+        == 204
+    )
 
     assert (
         client.post("/api/push/unsubscribe", json={"endpoint": sub["endpoint"]}).status_code == 204

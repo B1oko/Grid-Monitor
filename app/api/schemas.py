@@ -98,6 +98,7 @@ class PushKeys(BaseModel):
 class PushSubscriptionIn(BaseModel):
     endpoint: str = Field(min_length=1, max_length=1024)
     keys: PushKeys
+    language: str | None = Field(default=None, max_length=35)
 
 
 class PushUnsubscribe(BaseModel):
@@ -114,6 +115,7 @@ class AlertEventOut(BaseModel):
     notified_at: datetime
     resolved_at: datetime | None
     peak_value: float | None
+    params: dict[str, Any] | None = None
 
     model_config = {"from_attributes": True}
 

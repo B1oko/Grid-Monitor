@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.core.settings_store import SettingsStore
 from app.db.models import AlertEvent
 from app.drivers.base import InverterReading
+from app.i18n import DEFAULT_LANGUAGE, translate
 from app.services.notifier import Notification, Notifier
 from app.services.sun import solar_elevation
 
@@ -98,26 +99,21 @@ class Rule(Protocol):
         self, reading: InverterReading | None, now: datetime, cfg: dict[str, Any]
     ) -> Evaluation: ...
 
-    def fire_message(
-        self, name: str, tracker: Tracker, now: datetime, cfg: dict[str, Any]
-    ) -> tuple[str, str]: ...
+    def fire_params(self, tracker: Tracker, now: datetime, cfg: dict[str, Any]) -> dict[str, Any]:
+        """Language-neutral values for the ``alerts.<kind>.fire.*`` strings."""
+        ...
 
-    def resolve_message(
-        self, name: str, tracker: Tracker, now: datetime, cfg: dict[str, Any]
-    ) -> tuple[str, str]: ...
-
-
-def _minutes(start: datetime | None, end: datetime) -> str:
-    if start is None:
-        return "?"
-    total = max(0, round((end - start).total_seconds() / 60))
-    if total < 60:
-        return f"{total} min"
-    return f"{total // 60} h {total % 60:02d} min"
+    def resolve_params(
+        self, tracker: Tracker, now: datetime, cfg: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Language-neutral values for the ``alerts.<kind>.resolve.*`` strings."""
+        ...
 
 
-def _watts(value: float | None) -> str:
-    return "--" if value is None else f"{round(value):,} W"
+def _duration_min(tracker: Tracker, now: datetime) -> float:
+    if tracker.started_at is None:
+        return 0.0
+    return round((now - tracker.started_at).total_seconds() / 60, 1)
 
 
 class OverloadRule:
@@ -144,19 +140,15 @@ class OverloadRule:
             return Evaluation(Signal.OFF, grid)
         return Evaluation(None, grid)
 
-    def fire_message(self, name, tracker, now, cfg):
-        limit = float(cfg["alert_overload_limit_w"])
-        return (
-            "Contracted power exceeded",
-            f"{name}: importing {_watts(tracker.peak)} from the grid "
-            f"(limit {_watts(limit)}) for {_minutes(tracker.started_at, now)}.",
-        )
+    def fire_params(self, tracker, now, cfg):
+        return {
+            "peak_w": tracker.peak,
+            "limit_w": float(cfg["alert_overload_limit_w"]),
+            "duration_min": _duration_min(tracker, now),
+        }
 
-    def resolve_message(self, name, tracker, now, cfg):
-        return (
-            "Grid import back under the limit",
-            f"{name}: peak {_watts(tracker.peak)}, lasted {_minutes(tracker.started_at, now)}.",
-        )
+    def resolve_params(self, tracker, now, cfg):
+        return {"peak_w": tracker.peak, "duration_min": _duration_min(tracker, now)}
 
 
 class NoProductionRule:
@@ -187,19 +179,14 @@ class NoProductionRule:
             return Evaluation(Signal.ON)
         return Evaluation(Signal.OFF, pv)
 
-    def fire_message(self, name, tracker, now, cfg):
-        return (
-            "No solar production",
-            f"{name}: solar output has been under {_watts(cfg['alert_no_pv_threshold_w'])} "
-            f"for {_minutes(tracker.started_at, now)} in daylight. "
-            "Check the inverter breaker and the PV isolator.",
-        )
+    def fire_params(self, tracker, now, cfg):
+        return {
+            "threshold_w": float(cfg["alert_no_pv_threshold_w"]),
+            "duration_min": _duration_min(tracker, now),
+        }
 
-    def resolve_message(self, name, tracker, now, cfg):
-        return (
-            "Solar production restored",
-            f"{name}: PV is producing again after {_minutes(tracker.started_at, now)}.",
-        )
+    def resolve_params(self, tracker, now, cfg):
+        return {"duration_min": _duration_min(tracker, now)}
 
 
 class OfflineRule:
@@ -218,18 +205,11 @@ class OfflineRule:
     ) -> Evaluation:
         return Evaluation(Signal.ON if reading is None else Signal.OFF)
 
-    def fire_message(self, name, tracker, now, cfg):
-        return (
-            "Inverter not responding",
-            f"{name}: no Modbus response for {_minutes(tracker.started_at, now)}. "
-            "It may have lost power or network.",
-        )
+    def fire_params(self, tracker, now, cfg):
+        return {"duration_min": _duration_min(tracker, now)}
 
-    def resolve_message(self, name, tracker, now, cfg):
-        return (
-            "Inverter back online",
-            f"{name}: responding again after {_minutes(tracker.started_at, now)}.",
-        )
+    def resolve_params(self, tracker, now, cfg):
+        return {"duration_min": _duration_min(tracker, now)}
 
 
 DEFAULT_RULES: tuple[Rule, ...] = (OverloadRule(), NoProductionRule(), OfflineRule())
@@ -327,21 +307,30 @@ class AlertService:
                 )
                 if action is None:
                     continue
-                name = runtime.inverter.name
+                params = {"inverter": runtime.inverter.name}
                 if action == "fire":
-                    title, body = rule.fire_message(name, tracker, now, cfg)
+                    params |= rule.fire_params(tracker, now, cfg)
                     tracker.event_id = await self._record_event(
-                        inverter_id, rule.kind, title, body, tracker, now
+                        inverter_id, rule.kind, params, tracker, now
                     )
                 else:
-                    title, body = rule.resolve_message(name, tracker, now, cfg)
+                    params |= rule.resolve_params(tracker, now, cfg)
                     await self._mark_resolved(tracker, now)
                     tracker.peak = None
                     tracker.started_at = None
-                await self._notify(Notification(title, body, tag=f"{rule.kind}-{inverter_id}"))
+                await self._notify(
+                    Notification(
+                        title_key=f"alerts.{rule.kind}.{action}.title",
+                        body_key=f"alerts.{rule.kind}.{action}.body",
+                        params=params,
+                        tag=f"{rule.kind}-{inverter_id}",
+                        url="/#/alerts",
+                    )
+                )
 
     async def _notify(self, notification: Notification) -> None:
-        logger.info("Alert: %s - %s", notification.title, notification.body)
+        rendered = notification.render(DEFAULT_LANGUAGE)
+        logger.info("Alert: %s - %s", rendered["title"], rendered["body"])
         for notifier in self._notifiers:
             try:
                 await notifier.send(notification)
@@ -352,8 +341,7 @@ class AlertService:
         self,
         inverter_id: int,
         kind: str,
-        title: str,
-        message: str,
+        params: dict[str, Any],
         tracker: Tracker,
         now: datetime,
     ) -> int | None:
@@ -362,8 +350,9 @@ class AlertService:
                 event = AlertEvent(
                     inverter_id=inverter_id,
                     kind=kind,
-                    title=title,
-                    message=message,
+                    title=translate(f"alerts.{kind}.fire.title", DEFAULT_LANGUAGE, **params),
+                    message=translate(f"alerts.{kind}.fire.body", DEFAULT_LANGUAGE, **params),
+                    params=params,
                     started_at=tracker.started_at or now,
                     notified_at=now,
                     peak_value=tracker.peak,
