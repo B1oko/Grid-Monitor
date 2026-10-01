@@ -9,6 +9,7 @@ from app.db.models import Inverter
 from app.drivers.base import InverterDriver
 from app.drivers.registry import get_driver_class
 from app.services.live_manager import LiveHub, LivePoller
+from app.services.reader import SharedReader
 from app.services.recorder import Recorder
 
 logger = logging.getLogger(__name__)
@@ -18,14 +19,18 @@ class InverterRuntime:
     def __init__(
         self,
         inverter: Inverter,
-        driver: InverterDriver,
+        reader: SharedReader,
         recorder: Recorder,
         poller: LivePoller,
     ) -> None:
         self.inverter = inverter
-        self.driver = driver
+        self.reader = reader
         self.recorder = recorder
         self.poller = poller
+
+    @property
+    def driver(self) -> InverterDriver:
+        return self.reader.driver
 
     async def start(self) -> None:
         await self.recorder.start()
@@ -39,7 +44,7 @@ class InverterRuntime:
     async def stop(self) -> None:
         await self.poller.stop()
         await self.recorder.stop()
-        await self.driver.close()
+        await self.reader.close()
 
 
 def build_driver(inverter: Inverter) -> InverterDriver:
@@ -118,20 +123,20 @@ class InverterSupervisor:
             await self._stop_one(inverter_id)
 
     async def _start_one(self, inverter: Inverter) -> None:
-        driver = build_driver(inverter)
+        reader = SharedReader(build_driver(inverter))
         recorder = Recorder(
             inverter_id=inverter.id,
-            driver=driver,
+            driver=reader,
             session_factory=self._session_factory,
             interval_seconds=self._recorder_interval_seconds,
         )
         poller = LivePoller(
             inverter_id=inverter.id,
-            driver=driver,
+            driver=reader,
             hub=self._hub,
             poll_interval_seconds=inverter.poll_interval_s,
         )
-        runtime = InverterRuntime(inverter, driver, recorder, poller)
+        runtime = InverterRuntime(inverter, reader, recorder, poller)
         self._runtimes[inverter.id] = runtime
         await runtime.start()
         if self._live_wanted:

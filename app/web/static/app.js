@@ -31,6 +31,12 @@ const elements = {
   wizardCandidates: document.getElementById("wizard-candidates"),
   wizardForm: document.getElementById("wizard-form"),
   dashboard: document.getElementById("dashboard"),
+  alertBanner: document.getElementById("alert-banner"),
+  alertList: document.getElementById("alert-list"),
+  pushToggle: document.getElementById("push-toggle"),
+  pushTest: document.getElementById("push-test"),
+  pushStatus: document.getElementById("push-status"),
+  useLocation: document.getElementById("use-location"),
 };
 
 const samples = [];
@@ -245,8 +251,11 @@ function openSettings() {
   document.getElementById("set-retention").value = appSettings.retention_days ?? 365;
   document.getElementById("set-downsample").value = appSettings.downsample_after_days ?? 30;
   document.getElementById("set-timezone").value = appSettings.timezone ?? "UTC";
+  fillAlertSettings();
   elements.settingsStatus.textContent = "";
   elements.settingsModal.hidden = false;
+  refreshPushState();
+  loadAlertHistory();
 }
 
 function closeSettings() {
@@ -279,6 +288,7 @@ async function saveSettings(event) {
       retention_days: Number(document.getElementById("set-retention").value),
       downsample_after_days: Number(document.getElementById("set-downsample").value),
       timezone: document.getElementById("set-timezone").value.trim() || "UTC",
+      ...readAlertSettings(),
     }),
   });
   if (!inverterRes.ok || !settingsRes.ok) {
@@ -289,6 +299,196 @@ async function saveSettings(event) {
   await loadInverters();
   elements.settingsStatus.textContent = "Saved";
   setTimeout(closeSettings, 600);
+}
+
+const alertFields = [
+  ["set-overload-enabled", "alert_overload_enabled", "bool"],
+  ["set-overload-limit", "alert_overload_limit_w", "int"],
+  ["set-overload-minutes", "alert_overload_minutes", "num"],
+  ["set-nopv-enabled", "alert_no_pv_enabled", "bool"],
+  ["set-nopv-minutes", "alert_no_pv_minutes", "num"],
+  ["set-nopv-threshold", "alert_no_pv_threshold_w", "int"],
+  ["set-nopv-elevation", "alert_no_pv_min_sun_elevation_deg", "num"],
+  ["set-latitude", "latitude", "num"],
+  ["set-longitude", "longitude", "num"],
+  ["set-offline-enabled", "alert_offline_enabled", "bool"],
+  ["set-offline-minutes", "alert_offline_minutes", "num"],
+];
+
+function fillAlertSettings() {
+  for (const [id, key, type] of alertFields) {
+    const input = document.getElementById(id);
+    if (type === "bool") input.checked = Boolean(appSettings[key]);
+    else input.value = appSettings[key] ?? "";
+  }
+}
+
+function readAlertSettings() {
+  const values = {};
+  for (const [id, key, type] of alertFields) {
+    const input = document.getElementById(id);
+    if (type === "bool") values[key] = input.checked;
+    else if (input.value !== "") values[key] = type === "int" ? Math.round(Number(input.value)) : Number(input.value);
+  }
+  return values;
+}
+
+function useDeviceLocation() {
+  if (!("geolocation" in navigator)) {
+    elements.pushStatus.textContent = "Location is not available in this browser.";
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      document.getElementById("set-latitude").value = pos.coords.latitude.toFixed(4);
+      document.getElementById("set-longitude").value = pos.coords.longitude.toFixed(4);
+    },
+    () => {
+      elements.pushStatus.textContent = "Could not read the device location.";
+    },
+    { enableHighAccuracy: false, timeout: 10000 }
+  );
+}
+
+function urlBase64ToUint8Array(base64) {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const raw = atob((base64 + padding).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+}
+
+function pushSupported() {
+  return window.isSecureContext && "serviceWorker" in navigator && "PushManager" in window;
+}
+
+async function currentPushSubscription() {
+  if (!pushSupported()) return null;
+  const registration = await navigator.serviceWorker.ready;
+  return registration.pushManager.getSubscription();
+}
+
+async function refreshPushState() {
+  if (!pushSupported()) {
+    elements.pushToggle.disabled = true;
+    elements.pushTest.disabled = true;
+    elements.pushStatus.textContent = window.isSecureContext
+      ? "This browser does not support push notifications. On iPhone, add the app to the Home Screen first."
+      : "Push notifications need HTTPS with a certificate this device trusts.";
+    return;
+  }
+  const subscription = await currentPushSubscription();
+  elements.pushToggle.disabled = false;
+  elements.pushToggle.textContent = subscription
+    ? "Disable notifications on this device"
+    : "Enable notifications on this device";
+  elements.pushTest.disabled = !subscription;
+  if (Notification.permission === "denied") {
+    elements.pushStatus.textContent = "Notifications are blocked for this site in the browser settings.";
+  } else {
+    elements.pushStatus.textContent = subscription ? "This device receives alerts." : "";
+  }
+}
+
+async function togglePush() {
+  elements.pushToggle.disabled = true;
+  try {
+    const existing = await currentPushSubscription();
+    if (existing) {
+      await fetch("/api/push/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: existing.endpoint }),
+      });
+      await existing.unsubscribe();
+    } else {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        await refreshPushState();
+        return;
+      }
+      const keyRes = await fetch("/api/push/public-key");
+      const { public_key: publicKey } = await keyRes.json();
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(subscription.toJSON()),
+      });
+      if (!res.ok) throw new Error("subscribe failed");
+    }
+  } catch (err) {
+    elements.pushStatus.textContent = `Could not change notifications: ${err.message || err}`;
+    elements.pushToggle.disabled = false;
+    return;
+  }
+  await refreshPushState();
+}
+
+async function sendTestPush() {
+  elements.pushStatus.textContent = "Sending…";
+  const res = await fetch("/api/push/test", { method: "POST" });
+  if (!res.ok) {
+    elements.pushStatus.textContent = "Could not send the test notification.";
+    return;
+  }
+  const { delivered } = await res.json();
+  elements.pushStatus.textContent = delivered
+    ? `Sent to ${delivered} device${delivered === 1 ? "" : "s"}.`
+    : "No device accepted the notification.";
+}
+
+function formatAlertTime(iso) {
+  return new Date(iso).toLocaleString([], { dateStyle: "short", timeStyle: "short" });
+}
+
+function renderAlertItem(alert) {
+  const li = document.createElement("li");
+  li.classList.toggle("active", !alert.resolved_at);
+  const title = document.createElement("strong");
+  title.textContent = alert.title;
+  const body = document.createElement("small");
+  body.textContent = alert.message;
+  const when = document.createElement("small");
+  when.textContent = alert.resolved_at
+    ? `${formatAlertTime(alert.notified_at)} → ${formatAlertTime(alert.resolved_at)}`
+    : `${formatAlertTime(alert.notified_at)} · active`;
+  li.append(title, body, when);
+  return li;
+}
+
+async function loadAlertHistory() {
+  const res = await fetch("/api/alerts?limit=20");
+  if (!res.ok) return;
+  const alerts = await res.json();
+  elements.alertList.replaceChildren(...alerts.map(renderAlertItem));
+  if (!alerts.length) {
+    const li = document.createElement("li");
+    li.textContent = "No alerts yet";
+    elements.alertList.append(li);
+  }
+}
+
+async function refreshActiveAlerts() {
+  try {
+    const res = await fetch("/api/alerts?active=true&limit=10");
+    if (!res.ok) return;
+    const alerts = await res.json();
+    elements.alertBanner.hidden = alerts.length === 0;
+    elements.alertBanner.replaceChildren(
+      ...alerts.map((alert) => {
+        const row = document.createElement("div");
+        const title = document.createElement("strong");
+        title.textContent = `${alert.title}: `;
+        row.append(title, document.createTextNode(alert.message));
+        return row;
+      })
+    );
+  } catch {
+    // Offline or server restarting: keep the last banner.
+  }
 }
 
 async function deleteSelectedInverter() {
@@ -799,6 +999,9 @@ elements.settingsOpen.addEventListener("click", openSettings);
 elements.settingsClose.addEventListener("click", closeSettings);
 elements.settingsForm.addEventListener("submit", saveSettings);
 elements.deleteInverter.addEventListener("click", deleteSelectedInverter);
+elements.pushToggle.addEventListener("click", togglePush);
+elements.pushTest.addEventListener("click", sendTestPush);
+elements.useLocation.addEventListener("click", useDeviceLocation);
 
 document.querySelectorAll(".range-btn").forEach((btn) =>
   btn.addEventListener("click", () => selectRange(btn.dataset.range))
@@ -810,4 +1013,6 @@ initTheme();
   await loadSettings();
   await loadInverters();
   connect();
+  refreshActiveAlerts();
+  setInterval(refreshActiveAlerts, 60 * 1000);
 })();

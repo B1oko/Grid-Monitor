@@ -59,6 +59,39 @@ More drivers can be added without changing the rest of the app. See
 - Configuration (inverters, intervals, retention) is stored in the database and
   edited from the UI. Environment variables are only for bootstrap.
 
+## Alerts and push notifications
+
+Grid Monitor checks the inverter every 10 seconds in the background, with or
+without a browser open, and sends a web push notification to your phone when:
+
+| Alert | Default |
+| --- | --- |
+| Grid import above the contracted power | 5,500 W for 1 minute |
+| No solar production while the sun is up | under 50 W for 30 minutes, sun above 15° |
+| Inverter not responding | 10 minutes |
+
+Each alert also notifies you when it clears. Thresholds, delays and your
+location (needed to know when it is daytime) are set in **Settings → Alerts**.
+Overload uses grid power where positive means importing from the grid.
+
+To receive notifications on a device, open **Settings → Alerts → Enable
+notifications on this device**, then **Send test**.
+
+- The app must be served over **HTTPS with a certificate the device trusts**.
+  With a self-signed or home-made certificate, install your CA on the phone
+  (Android: *Settings → Security → Install certificate → CA certificate*;
+  iOS: install the profile, then enable it under *Settings → General → About →
+  Certificate Trust Settings*). Accepting the browser warning is not enough:
+  browsers refuse to register the service worker on an untrusted certificate.
+- On iPhone/iPad (iOS 16.4+), first add the app to the Home Screen and enable
+  notifications from the installed app.
+- Notifications are delivered through the browser vendor's push service
+  (Google, Apple, Mozilla), so they reach your phone anywhere. The server only
+  needs outbound internet access; nothing has to be exposed.
+- The VAPID key pair is generated on first start and stored in
+  `$DATA_DIR/vapid_private.pem`. Keep it with your backups: if it changes,
+  every device has to enable notifications again.
+
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -68,6 +101,7 @@ More drivers can be added without changing the rest of the app. See
 | `TZ` | `UTC` | Container timezone |
 | `LOG_LEVEL` | `INFO` | Logging level |
 | `PORT` | `8000` | Used only by local uvicorn helpers |
+| `VAPID_SUBJECT` | project URL | Contact (`mailto:` or URL) sent to push services |
 
 PostgreSQL example:
 
@@ -116,6 +150,10 @@ uv run ruff check .
 | `GET /api/inverters/{id}/snapshot` | One-shot live reading |
 | `GET/PUT /api/settings` | Persisted app settings |
 | `GET /api/history` | Aggregated history (`inverter_id`, `from`, `to`, `resolution`) |
+| `GET /api/alerts` | Alert history (`limit`, `active`) |
+| `GET /api/push/public-key` | VAPID public key and number of subscribed devices |
+| `POST /api/push/subscribe`, `/unsubscribe` | Register or remove a push subscription |
+| `POST /api/push/test` | Send a test notification to every device |
 | `POST /api/discover` | Opt-in LAN scan |
 | `WS /ws/live` | Live samples (`inverter_id` on every message) |
 
