@@ -44,6 +44,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chart and dashboard colors changed to a palette that stays distinguishable
   with color-vision deficiency in light and dark themes
 
+### Fixed
+
+- Deleting an inverter now also deletes its alerts. Alerts left behind by
+  inverters deleted earlier are removed on upgrade
+
 ## [0.1.0] - 2026-08-21
 
 - Initial public release
