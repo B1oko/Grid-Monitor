@@ -93,7 +93,8 @@ function route() {
   currentRoute = routeName;
   document.body.dataset.route = routeName;
   document.getElementById("page-title").textContent = routeName === "setup" ? "Grid Monitor" : t(`nav.${routeName}`);
-  document.title = routeName === "dashboard" ? "Grid Monitor" : `${t(`nav.${routeName}`)} · Grid Monitor`;
+  document.title =
+    routeName === "dashboard" || routeName === "setup" ? "Grid Monitor" : `${t(`nav.${routeName}`)} · Grid Monitor`;
   renderNav(routeName);
   cleanup = render(view, param) || null;
   view.focus({ preventScroll: true });
