@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Response
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from app.api.deps import AppState, get_state
 from app.api.schemas import InverterCreate, InverterOut, InverterUpdate
-from app.db.models import Inverter
+from app.db.models import AlertEvent, Inverter
 from app.drivers.registry import get_driver_class
 
 router = APIRouter(prefix="/api", tags=["inverters"])
@@ -85,6 +85,8 @@ async def delete_inverter(inverter_id: int, state: AppState = Depends(get_state)
         inverter = await session.get(Inverter, inverter_id)
         if inverter is None:
             raise HTTPException(status_code=404, detail="Inverter not found")
+        # SQLite does not enforce ON DELETE CASCADE, so remove the alerts explicitly.
+        await session.execute(delete(AlertEvent).where(AlertEvent.inverter_id == inverter_id))
         await session.delete(inverter)
         await session.commit()
     await _reload(state)

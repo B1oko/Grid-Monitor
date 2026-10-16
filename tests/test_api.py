@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from fastapi.testclient import TestClient
 from sqlalchemy import column
 
+from app.db.models import AlertEvent
 from app.db.timebucket import serialize_bucket_ts, time_bucket
 
 
@@ -64,6 +65,34 @@ def test_inverter_crud_and_settings(client: TestClient) -> None:
     deleted = client.delete(f"/api/inverters/{inverter['id']}")
     assert deleted.status_code == 204
     assert client.get("/api/inverters").json() == []
+
+
+def test_deleting_inverter_removes_its_alerts(client: TestClient) -> None:
+    inverter = client.post(
+        "/api/inverters",
+        json={"name": "Roof", "driver_id": "saj-h2", "host": "192.0.2.10"},
+    ).json()
+
+    async def add_alert() -> None:
+        now = datetime.now(UTC)
+        async with client.app.state.core.session_factory() as session:
+            session.add(
+                AlertEvent(
+                    inverter_id=inverter["id"],
+                    kind="offline",
+                    title="Offline",
+                    message="Roof is not responding",
+                    started_at=now,
+                    notified_at=now,
+                )
+            )
+            await session.commit()
+
+    client.portal.call(add_alert)
+    assert len(client.get("/api/alerts").json()) == 1
+
+    assert client.delete(f"/api/inverters/{inverter['id']}").status_code == 204
+    assert client.get("/api/alerts").json() == []
 
 
 def test_unknown_driver_is_rejected(client: TestClient) -> None:
