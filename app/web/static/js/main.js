@@ -13,6 +13,7 @@ import {
 } from "./state.js";
 import { applyTheme } from "./theme.js";
 import { renderAlerts } from "./views/alerts.js";
+import { renderCosts } from "./views/costs.js";
 import { renderDashboard } from "./views/dashboard.js";
 import { renderHistory } from "./views/history.js";
 import { renderSettings } from "./views/settings.js";
@@ -21,6 +22,7 @@ import { renderSetup } from "./views/setup.js";
 const NAV = [
   { route: "dashboard", href: "#/", icon: "home" },
   { route: "history", href: "#/history", icon: "chart" },
+  { route: "costs", href: "#/costs", icon: "euro" },
   { route: "alerts", href: "#/alerts", icon: "bell" },
   { route: "settings", href: "#/settings", icon: "sliders" },
 ];
@@ -28,6 +30,7 @@ const NAV = [
 const VIEWS = {
   dashboard: renderDashboard,
   history: renderHistory,
+  costs: renderCosts,
   alerts: renderAlerts,
   settings: renderSettings,
   setup: renderSetup,

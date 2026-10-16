@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy import (
     JSON,
     Boolean,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -97,3 +98,24 @@ class AlertEvent(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     peak_value: Mapped[float | None] = mapped_column(Float)
     params: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+
+
+class Tariff(Base):
+    """Electricity prices in effect from ``valid_from`` until the next tariff starts."""
+
+    __tablename__ = "tariffs"
+    __table_args__ = (UniqueConstraint("valid_from", name="uq_tariff_valid_from"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    valid_from: Mapped[date] = mapped_column(Date, nullable=False)
+    energy_price_p1: Mapped[float] = mapped_column(Float, nullable=False)
+    energy_price_p2: Mapped[float] = mapped_column(Float, nullable=False)
+    energy_price_p3: Mapped[float] = mapped_column(Float, nullable=False)
+    power_price_p1: Mapped[float] = mapped_column(Float, nullable=False)
+    power_price_p2: Mapped[float] = mapped_column(Float, nullable=False)
+    contracted_power_p1_kw: Mapped[float] = mapped_column(Float, nullable=False)
+    contracted_power_p2_kw: Mapped[float] = mapped_column(Float, nullable=False)
+    export_price: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    fixed_daily: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    electricity_tax_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    vat_pct: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)

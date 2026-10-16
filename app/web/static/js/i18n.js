@@ -1,6 +1,7 @@
 // Translations for the web UI. Catalogs live in app/i18n/locales/<lang>.json and
 // are shared with the backend. Placeholder formatting rules must match
-// app/i18n/__init__.py: *_w -> power, *_min -> duration, *_deg -> angle.
+// app/i18n/__init__.py: *_w -> power, *_min -> duration, *_deg -> angle,
+// *_eur -> money.
 
 const STORAGE_KEY = "language";
 const DEFAULT_LANGUAGE = "en";
@@ -99,5 +100,6 @@ function formatParam(name, value) {
   if (name.endsWith("_w")) return `${formatNumber(value)} W`;
   if (name.endsWith("_min")) return formatDurationMinutes(value);
   if (name.endsWith("_deg")) return `${Math.round(Number(value))}°`;
+  if (name.endsWith("_eur")) return `${formatNumber(value, 2)} €`;
   return String(value);
 }

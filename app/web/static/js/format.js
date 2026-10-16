@@ -13,6 +13,10 @@ export function formatPower(value) {
   return isMissing(value) ? "-- W" : `${formatNumber(Math.round(Number(value)))} W`;
 }
 
+export function formatMoney(value) {
+  return isMissing(value) ? "-- €" : `${formatNumber(value, 2)} €`;
+}
+
 export function formatPercent(value) {
   return isMissing(value) ? "-- %" : `${formatNumber(Math.round(Number(value)))} %`;
 }

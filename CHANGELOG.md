@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - English and Spanish translations. The language follows the browser and can be
   changed in Settings → Appearance; push notifications use each device's language
 - `AGENTS.md` with working and translation rules for contributors and AI agents
+- Costs page with an estimate of the electricity bill from your tariff prices
+  (Spanish 2.0TD periods, surplus credit, taxes), a projection to the end of
+  the billing period, savings from solar and cost per day. Tariffs are set in
+  Settings → Tariff and keep their start date so past periods use old prices
 
 ### Changed
 
@@ -46,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Deleting an inverter now also deletes its alerts. Alerts left behind by
+  inverters deleted earlier are removed on upgrade
 - Spacing between the text, fields and button in Settings → Location
 
 ## [0.1.0] - 2026-08-21
