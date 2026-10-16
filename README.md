@@ -37,10 +37,12 @@ The UI will be at `http://localhost:8080`.
 
 | Tag | Meaning |
 | --- | --- |
-| `latest` | Latest stable release |
-| `edge` | Build from `main` |
-| `dev` | Build from `develop` (pre-release testing) |
-| `0.1.0`, `0.1`, `0` | Semver from a git tag `v0.1.0` |
+| `latest` | Latest release |
+| `0.2.0`, `0.2`, `0` | A specific release, its newest patch, or its newest minor version |
+| `edge` | Latest build from `main`, including unreleased dependency updates |
+
+Every pull request raises the version, and each new version on `main` is
+published as a release with its notes from [CHANGELOG.md](CHANGELOG.md).
 
 Images are published to GitHub Container Registry and, when configured, Docker Hub.
 

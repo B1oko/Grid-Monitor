@@ -1,4 +1,6 @@
-const CACHE = "grid-monitor-v6";
+// The server replaces __VERSION__ with the app version, so every release
+// installs a new worker and drops the previous cache.
+const CACHE = "grid-monitor-__VERSION__";
 const PRECACHE = [
   "/",
   "/manifest.json",
@@ -29,7 +31,8 @@ const PRECACHE = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE)));
+  // "reload" skips the browser's HTTP cache, which may still hold old files.
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(PRECACHE.map((url) => new Request(url, { cache: "reload" })))));
   self.skipWaiting();
 });
 
@@ -43,12 +46,13 @@ self.addEventListener("activate", (e) => {
 });
 
 // Network first, so a new release is picked up immediately; the cache is only
-// a fallback when the server cannot be reached.
+// a fallback when the server cannot be reached. "no-cache" makes the browser
+// check with the server even if its HTTP cache considers a file fresh.
 self.addEventListener("fetch", (e) => {
   const { pathname } = new URL(e.request.url);
   if (e.request.method !== "GET" || pathname.startsWith("/ws/") || pathname.startsWith("/api/")) return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: "no-cache" })
       .then((res) => {
         const clone = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, clone));
