@@ -5,7 +5,7 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 
@@ -129,6 +129,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Grid Monitor", version=__version__, lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+# Without Cache-Control the browser may reuse cached UI files without asking, so
+# after an update new modules can run with an old translation catalog. no-cache
+# keeps them cached but revalidated (a cheap 304 when unchanged).
+@app.middleware("http")
+async def revalidate_ui_files(request: Request, call_next):
+    response = await call_next(request)
+    if not request.url.path.startswith(("/api/", "/ws/", "/docs", "/openapi.json")):
+        response.headers.setdefault("Cache-Control", "no-cache")
+    return response
+
+
 app.include_router(ui.router)
 app.include_router(health.router)
 app.include_router(drivers.router)
