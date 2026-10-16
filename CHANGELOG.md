@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chart and dashboard colors changed to a palette that stays distinguishable
   with color-vision deficiency in light and dark themes
 
+### Fixed
+
+- Spacing between the text, fields and button in Settings → Location
+
 ## [0.1.0] - 2026-08-21
 
 - Initial public release

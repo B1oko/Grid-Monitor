@@ -112,7 +112,7 @@ function alertsSection() {
 
 function locationSection() {
   return settingsForm(`
-    <section class="card">
+    <section class="card location-card">
       <p class="muted">${esc(t("settings.location.description"))}</p>
       <div class="form-grid">
         ${field({ label: t("settings.location.latitude"), name: "latitude", value: s("latitude") ?? "", suffix: "°", attrs: "min=-90 max=90 step=0.0001" })}
