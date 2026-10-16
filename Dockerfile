@@ -41,7 +41,7 @@ RUN chmod +x /docker-entrypoint.sh \
     && mkdir -p /data \
     && chown -R app:app /data /app
 
-ARG VERSION=0.1.0
+ARG VERSION=dev
 LABEL org.opencontainers.image.title="Grid Monitor" \
       org.opencontainers.image.description="Self-hosted live dashboard for solar inverters" \
       org.opencontainers.image.licenses="MIT" \

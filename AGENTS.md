@@ -18,8 +18,9 @@ inverter driver.
 
 ## Working rules
 
-- Branch from `develop` as `feature/<name>` and open the PR against `develop`.
-  Never commit directly to `main` or `develop`.
+- Branch from `main` as `feature/<name>` and open the PR against `main`.
+  Never commit directly to `main`.
+- Every PR raises the version (see [Versioning](#versioning)).
 - Before finishing, run:
 
   ```bash
@@ -30,7 +31,7 @@ inverter driver.
 
 - Keep changes focused. Do not mix a new driver with unrelated UI work.
 - Add or update tests for behavior you change.
-- Add user-visible changes to `CHANGELOG.md` under **Unreleased**, and update
+- Describe the change in the PR's `CHANGELOG.md` section, and update
   `README.md` or `docs/` when the UI, configuration or API changes.
 - Database changes need a new Alembic migration in `alembic/versions/`
   (numbered `000N_<name>.py`). Migrations run on startup, so they must work on
@@ -40,6 +41,28 @@ inverter driver.
 - The app has no authentication. Do not add features that assume it is exposed
   to the internet.
 
+## Versioning
+
+The version follows [Semantic Versioning](https://semver.org/) and lives in
+`pyproject.toml`. Every pull request releases a new version:
+
+1. Raise `version` in `pyproject.toml` and `__version__` in `app/__init__.py`
+   to the same value, then run `uv lock`:
+   - **PATCH** (`0.2.0` → `0.2.1`): bug fixes, dependency updates, docs.
+   - **MINOR** (`0.2.1` → `0.3.0`): new features. While the version is `0.x`,
+     breaking changes (API, configuration, removed features) also go here.
+   - **MAJOR** (`1.x` → `2.0.0`): breaking changes once `1.0.0` is out.
+2. Add a section at the top of `CHANGELOG.md`, `## [X.Y.Z] - YYYY-MM-DD`, with
+   **Added**, **Changed**, **Fixed** or **Removed** entries.
+3. Check it with `python scripts/version.py`. CI also checks that the version
+   is higher than on `main`. Dependabot PRs are exempt; their updates ship with
+   the next versioned PR.
+
+When a new version reaches `main`, the Release workflow publishes the
+`X.Y.Z`, `X.Y`, `X` and `latest` images and creates the `vX.Y.Z` tag and a
+GitHub release with the CHANGELOG section. Merges that keep the version (such
+as Dependabot updates) only refresh the `edge` image.
+
 ## Web UI
 
 - The UI is vanilla JavaScript ES modules served as-is from `app/web/static/`.
@@ -48,8 +71,9 @@ inverter driver.
   `js/state.js`, API calls go through `js/api.js`.
 - Escape every value inserted into HTML with `esc()` from `js/format.js`.
 - When you add, rename or remove a file under `js/`, update `PRECACHE` in
-  `sw.js` and bump `CACHE` (`grid-monitor-vN`) so installed apps pick up the
-  change. `tests/test_i18n.py` fails if a module is missing from `PRECACHE`.
+  `sw.js`. `tests/test_i18n.py` fails if a module is missing from `PRECACHE`.
+  The cache name comes from the app version, so installed apps update with
+  each release.
 - Check new screens on a phone-sized viewport and in both light and dark themes.
 
 ## Translations

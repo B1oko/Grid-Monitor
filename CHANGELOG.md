@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-10-16
 
 ### Added
 
@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (Spanish 2.0TD periods, surplus credit, taxes), a projection to the end of
   the billing period, savings from solar and cost per day. Tariffs are set in
   Settings → Tariff and keep their start date so past periods use old prices
+- Versioning: every pull request raises the version in `pyproject.toml` and
+  adds its section here. CI checks it, and a new version on `main` publishes
+  the `X.Y.Z` and `latest` images and creates the `vX.Y.Z` tag and GitHub release
 
 ### Changed
 
@@ -60,6 +63,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - After an update the UI could show translation keys (such as `tariff.add_title`)
   instead of text, because the browser kept an old catalog. UI files are now
   always revalidated
+- Installed apps (for example on a phone) kept old files after an update. The
+  service worker now always checks with the server, and its cache is named
+  after the app version so each release replaces it
 
 ## [0.1.0] - 2026-08-21
 

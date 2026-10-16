@@ -1,8 +1,9 @@
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
+from app import __version__
 from app.api.deps import AppState
 from app.i18n import LOCALES_DIR, available_languages, catalog
 
@@ -21,8 +22,9 @@ async def manifest_json() -> FileResponse:
 
 
 @router.get("/sw.js")
-async def service_worker_js() -> FileResponse:
-    return FileResponse(STATIC_DIR / "sw.js", media_type="application/javascript")
+async def service_worker_js() -> Response:
+    script = (STATIC_DIR / "sw.js").read_text(encoding="utf-8")
+    return Response(script.replace("__VERSION__", __version__), media_type="application/javascript")
 
 
 @router.get("/i18n/languages.json")

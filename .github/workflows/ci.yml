@@ -24,3 +24,19 @@ jobs:
 
       - name: Tests
         run: uv run pytest
+
+  # Every pull request must raise the version and add its CHANGELOG section
+  # (see scripts/version.py). Dependabot cannot do that, so its dependency
+  # updates ship with the next versioned pull request.
+  version:
+    if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check the version was raised
+        run: |
+          git show "origin/${{ github.base_ref }}:pyproject.toml" > "$RUNNER_TEMP/base.toml"
+          python3 scripts/version.py --base "$RUNNER_TEMP/base.toml"
