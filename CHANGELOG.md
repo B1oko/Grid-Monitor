@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Deleting an inverter now also deletes its alerts. Alerts left behind by
   inverters deleted earlier are removed on upgrade
+- Spacing between the text, fields and button in Settings → Location
 
 ## [0.1.0] - 2026-08-21
 

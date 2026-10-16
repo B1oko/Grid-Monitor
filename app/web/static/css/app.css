@@ -435,6 +435,15 @@ body[data-route="setup"] .topbar {
   box-shadow: var(--shadow);
 }
 
+.location-card {
+  display: grid;
+  gap: 14px;
+}
+
+.location-card .btn {
+  justify-self: start;
+}
+
 .card-head {
   display: flex;
   align-items: baseline;
