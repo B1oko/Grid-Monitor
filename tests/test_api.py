@@ -95,6 +95,12 @@ def test_deleting_inverter_removes_its_alerts(client: TestClient) -> None:
     assert client.get("/api/alerts").json() == []
 
 
+def test_ui_files_are_revalidated(client: TestClient) -> None:
+    for path in ("/", "/sw.js", "/i18n/es.json", "/static/js/main.js"):
+        assert client.get(path).headers["cache-control"] == "no-cache", path
+    assert "cache-control" not in client.get("/api/settings").headers
+
+
 def test_unknown_driver_is_rejected(client: TestClient) -> None:
     response = client.post(
         "/api/inverters",
