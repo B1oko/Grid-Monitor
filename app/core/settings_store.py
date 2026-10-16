@@ -28,6 +28,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "alert_no_pv_min_sun_elevation_deg": 15.0,
     "alert_offline_enabled": True,
     "alert_offline_minutes": 10.0,
+    "billing_day": 1,
 }
 
 

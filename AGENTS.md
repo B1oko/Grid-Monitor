@@ -83,6 +83,7 @@ loads them from `/i18n/<lang>.json`.
    | `*_w` | Power with the language's thousands separator | `{limit_w}` → `5,500 W` / `5.500 W` |
    | `*_min` | Duration from minutes | `{duration_min}` → `1 h 05 min` |
    | `*_deg` | Rounded angle | `{elevation_deg}` → `15°` |
+   | `*_eur` | Money with two decimals | `{amount_eur}` → `96.60 €` / `96,60 €` |
    | anything else | Inserted as-is | `{inverter}` → `Roof` |
 
    The rules are implemented twice, in `app/i18n/__init__.py` and

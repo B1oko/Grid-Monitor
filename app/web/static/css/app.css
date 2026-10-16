@@ -265,7 +265,7 @@ a {
   inset: auto 0 0 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   height: calc(var(--tabbar) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
   border-top: 1px solid var(--line);
@@ -1604,6 +1604,136 @@ input[type="number"]::-webkit-inner-spin-button {
 .facts dd {
   margin: 0;
   font-weight: 700;
+}
+
+/* ---------- Costs ---------- */
+
+.period-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.period-nav strong {
+  text-align: center;
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.costs [data-v="body"] {
+  display: grid;
+  gap: 12px;
+}
+
+.costs .notice {
+  margin-bottom: 0;
+}
+
+.cost-hero {
+  display: grid;
+  gap: 2px;
+}
+
+.cost-total {
+  font-size: 34px;
+  font-weight: 780;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cost-grid {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .cost-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.cost-grid h2,
+.chart-title {
+  margin-bottom: 12px;
+}
+
+.chart-title {
+  padding: 0 4px;
+}
+
+.bill {
+  margin-bottom: 10px;
+}
+
+.bill dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.bill-total {
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 17px;
+}
+
+.bill-total dt {
+  color: var(--ink);
+  font-weight: 720;
+}
+
+.period-list {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.period-list .row-between {
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 6px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.meter-fill.period-p1 {
+  background: var(--danger);
+}
+
+.meter-fill.period-p2 {
+  background: var(--warn);
+}
+
+.meter-fill.period-p3 {
+  background: var(--ok);
+}
+
+.cost-chart {
+  height: min(44vh, 340px);
+  min-height: 240px;
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+}
+
+.tariff-summary {
+  font-variant-numeric: tabular-nums;
+}
+
+.form-subtitle {
+  margin: 6px 0 -2px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 720;
 }
 
 /* ---------- Setup ---------- */

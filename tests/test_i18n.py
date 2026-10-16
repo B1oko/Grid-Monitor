@@ -106,6 +106,9 @@ def test_translate_formats_by_placeholder_suffix() -> None:
     )
     spanish = translate("alerts.overload.fire.body", "es-ES", **params)
     assert "6.200 W" in spanish and "5.500 W" in spanish and "1 h 15 min" in spanish
+    assert translate("costs.projected", "es", amount_eur=1234.5) == (
+        "Estimación al cierre del periodo: 1.234,50 €"
+    )
 
 
 def test_translate_falls_back_to_reference_language() -> None:

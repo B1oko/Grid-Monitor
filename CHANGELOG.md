@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - English and Spanish translations. The language follows the browser and can be
   changed in Settings → Appearance; push notifications use each device's language
 - `AGENTS.md` with working and translation rules for contributors and AI agents
+- Costs page with an estimate of the electricity bill from your tariff prices
+  (Spanish 2.0TD periods, surplus credit, taxes), a projection to the end of
+  the billing period, savings from solar and cost per day. Tariffs are set in
+  Settings → Tariff and keep their start date so past periods use old prices
 
 ### Changed
 
