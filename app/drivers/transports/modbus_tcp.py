@@ -23,7 +23,7 @@ class ModbusTcpTransport:
                 response = await client.read_holding_registers(
                     address=address,
                     count=count,
-                    slave=self.unit_id,
+                    device_id=self.unit_id,
                 )
                 if response.isError():
                     raise RuntimeError(f"Modbus error response: {response}")

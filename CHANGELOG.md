@@ -47,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`GET /api/energy`). The 30-day range was removed
 - Chart and dashboard colors changed to a palette that stays distinguishable
   with color-vision deficiency in light and dark themes
+- Updated FastAPI 0.141 (Starlette 1.8), Uvicorn 0.52, pydantic-settings 2.15
+  and pymodbus 3.15. The Modbus transport passes `device_id` instead of the
+  removed `slave` argument
 
 ### Fixed
 
