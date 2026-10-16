@@ -52,17 +52,16 @@ def _period_start(local: datetime, resolution: EnergyResolution) -> datetime:
     return start.replace(day=1) if resolution == "month" else start
 
 
-async def energy_totals(
+async def hourly_energy(
     session: AsyncSession,
     *,
     dialect: str,
     inverter_id: int,
     start: datetime,
     end: datetime,
-    tz: ZoneInfo,
-    resolution: EnergyResolution,
     now: datetime | None = None,
-) -> list[dict]:
+) -> list[tuple[datetime, dict[str, float | None]]]:
+    """kWh per flow for each UTC hour with samples, clipped to ``[start, end]``."""
     start, end = (value if value.tzinfo else value.replace(tzinfo=UTC) for value in (start, end))
     end = min(end, now or datetime.now(UTC))
     bucket = time_bucket(InverterSample.ts, "hour", dialect).label("ts")
@@ -80,17 +79,39 @@ async def energy_totals(
     )
     rows = (await session.execute(stmt)).all()
 
-    totals: dict[datetime, dict[str, float | None]] = defaultdict(lambda: dict.fromkeys(FLOWS))
+    hours: list[tuple[datetime, dict[str, float | None]]] = []
     for row in rows:
         hour_start = parse_bucket_ts(row.ts)
         covered = min(hour_start + HOUR, end) - max(hour_start, start)
-        hours = max(covered, timedelta(0)) / HOUR
-        period = _period_start(hour_start.astimezone(tz), resolution)
+        fraction = max(covered, timedelta(0)) / HOUR
+        values = {}
         for key in FLOWS:
             avg_w = getattr(row, key)
-            if avg_w is None:
-                continue
-            totals[period][key] = (totals[period][key] or 0.0) + float(avg_w) * hours / 1000
+            values[key] = None if avg_w is None else float(avg_w) * fraction / 1000
+        hours.append((hour_start, values))
+    return sorted(hours, key=lambda item: item[0])
+
+
+async def energy_totals(
+    session: AsyncSession,
+    *,
+    dialect: str,
+    inverter_id: int,
+    start: datetime,
+    end: datetime,
+    tz: ZoneInfo,
+    resolution: EnergyResolution,
+    now: datetime | None = None,
+) -> list[dict]:
+    hours = await hourly_energy(
+        session, dialect=dialect, inverter_id=inverter_id, start=start, end=end, now=now
+    )
+    totals: dict[datetime, dict[str, float | None]] = defaultdict(lambda: dict.fromkeys(FLOWS))
+    for hour_start, values in hours:
+        period = _period_start(hour_start.astimezone(tz), resolution)
+        for key, kwh in values.items():
+            if kwh is not None:
+                totals[period][key] = (totals[period][key] or 0.0) + kwh
 
     return [
         {

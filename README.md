@@ -56,14 +56,15 @@ More drivers can be added without changing the rest of the app. See
 ## Using the app
 
 The UI works in any browser and can be installed on a phone's home screen. It
-has a sidebar on desktop and a tab bar on mobile, with four pages:
+has a sidebar on desktop and a tab bar on mobile, with five pages:
 
 | Page | What it shows |
 | --- | --- |
 | **Home** | Live energy flow and cards for solar, home, battery and grid, with grid import shown against your contracted power |
 | **History** | Live, today, yesterday and the last 7 days show every recorded sample. This month and this year show daily or monthly energy (kWh) with totals and self-sufficiency |
+| **Costs** | Estimated electricity bill for the current or a past billing period: breakdown like your bill, projection to the end of the period, energy by tariff period, savings from solar and cost per day |
 | **Alerts** | Active alerts, alert history and notifications for this device |
-| **Settings** | Inverters, Alerts, Location, Data (recording and retention), Appearance (language and theme) and About |
+| **Settings** | Inverters, Alerts, Tariff (electricity prices), Location, Data (recording and retention), Appearance (language and theme) and About |
 
 The interface is available in **English** and **Spanish**. The language
 follows the browser and can be changed in **Settings → Appearance**. Push
@@ -76,6 +77,25 @@ notifications are sent in the language of each device. To add a language, see
 - A background recorder writes samples to SQLite (default every 5 minutes).
 - Configuration (inverters, intervals, retention) is stored in the database and
   edited from the UI. Environment variables are only for bootstrap.
+
+## Electricity costs
+
+Enter the prices from your electricity bill in **Settings → Tariff** and the
+**Costs** page estimates what you spend from the grid power the inverter
+measures. The model follows the Spanish 2.0TD access tariff used for homes up to
+15 kW:
+
+- Energy priced in three periods: peak (P1, 10-14 and 18-22), standard (P2,
+  8-10, 14-18 and 22-24) and off-peak (P3, 0-8, weekends and fixed-date national
+  holidays). With a single price, enter it in all three.
+- Contracted power billed per kW and day in two periods.
+- Surplus credit under simplified net billing: it lowers the energy cost of a
+  billing period to zero at most, and the page shows how much was left over.
+- Other daily charges (social bonus, meter rental), electricity tax and VAT.
+
+A tariff applies from its start date until the next one, so past periods keep
+the prices they had. Estimates use the inverter's meter, not the utility meter,
+and can differ slightly from the bill.
 
 ## Alerts and push notifications
 
@@ -161,6 +181,8 @@ uv run ruff check .
 | `GET /api/history` | Aggregated history (`inverter_id`, `from`, `to`, `resolution`) |
 | `GET /api/energy` | Energy in kWh per day or month (`inverter_id`, `from`, `to`, `resolution`, `tz`) |
 | `GET /api/alerts` | Alert history (`limit`, `active`) |
+| `GET/POST/PUT/DELETE /api/tariffs` | Electricity tariffs |
+| `GET /api/costs` | Estimated cost for a billing period (`inverter_id`, `from`, `to`, `tz`) |
 | `GET /i18n/languages.json`, `/i18n/{lang}.json` | Available languages and translation catalogs |
 | `GET /api/push/public-key` | VAPID public key and number of subscribed devices |
 | `POST /api/push/subscribe`, `/unsubscribe` | Register or remove a push subscription |

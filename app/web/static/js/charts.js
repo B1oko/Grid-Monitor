@@ -420,3 +420,75 @@ export class EnergyChart extends BaseChart {
     });
   }
 }
+
+// Cost per day before taxes: grid energy and fixed charges above zero, surplus
+// credit below.
+const COST_SERIES = [
+  { key: "energy_eur", label: "costs.series.energy", color: "--grid", sign: 1 },
+  { key: "fixed_eur", label: "costs.series.fixed", color: "--load", sign: 1 },
+  { key: "export_credit_eur", label: "costs.series.credit", color: "--solar", sign: -1 },
+];
+
+export class CostChart extends BaseChart {
+  show(days, { titles }) {
+    this.last = [days, { titles }];
+    const c = palette();
+    const datasets = COST_SERIES.map((s) => ({
+      label: t(s.label),
+      data: days.map((d) => (d.row?.[s.key] == null ? null : s.sign * d.row[s.key])),
+      backgroundColor: token(s.color),
+      borderColor: c.panel,
+      borderWidth: 1,
+      borderRadius: 3,
+      borderSkipped: false,
+      maxBarThickness: 28,
+    }));
+    const money = (v) => `${formatNumber(Math.abs(v), 2)} €`;
+
+    this.render({
+      type: "bar",
+      data: { labels: days.map((d) => d.label), datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 300 },
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: {
+            ...legendBase(c),
+            labels: {
+              ...legendBase(c).labels,
+              generateLabels: (chart) =>
+                chart.data.datasets.map((ds, i) => ({
+                  text: ds.label,
+                  fillStyle: ds.backgroundColor,
+                  strokeStyle: ds.backgroundColor,
+                  fontColor: c.muted,
+                  pointStyle: "rectRounded",
+                  hidden: !chart.isDatasetVisible(i),
+                  datasetIndex: i,
+                })),
+            },
+          },
+          tooltip: {
+            ...tooltipBase(c),
+            filter: (item) => item.parsed.y != null && Math.abs(item.parsed.y) >= 0.005,
+            callbacks: {
+              title: (items) => (items.length ? titles[items[0].dataIndex] : ""),
+              label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y < 0 ? "-" : ""}${money(ctx.parsed.y)}`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { color: c.muted, maxRotation: 0, autoSkip: true, font: { size: 11 } },
+            grid: { display: false },
+            border: { display: false },
+          },
+          y: { stacked: true, ...valueAxis(c, (v) => `${v < 0 ? "-" : ""}${formatNumber(Math.abs(v), 2)} €`) },
+        },
+      },
+    });
+  }
+}

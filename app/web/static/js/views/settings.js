@@ -1,16 +1,18 @@
 import { api } from "../api.js";
 import { esc } from "../format.js";
-import { getLanguagePreference, getLanguages, setLanguagePreference, t } from "../i18n.js";
+import { formatNumber, getLanguage, getLanguagePreference, getLanguages, setLanguagePreference, t } from "../i18n.js";
 import { icon } from "../icons.js";
 import { syncPushLanguage } from "../push.js";
 import { emit, loadInverters, on, saveSettings, state } from "../state.js";
 import { getThemePreference, setThemePreference } from "../theme.js";
 import { emptyState, field, readForm, switchInput, toast } from "../ui.js";
 import { bindInverterForm, inverterFormHtml } from "./inverter-form.js";
+import { bindTariffForm, tariffFormHtml, today } from "./tariff-form.js";
 
 export const SECTIONS = [
   { id: "inverters", icon: "inverter" },
   { id: "alerts", icon: "bell" },
+  { id: "tariff", icon: "euro" },
   { id: "location", icon: "pin" },
   { id: "data", icon: "database" },
   { id: "appearance", icon: "palette" },
@@ -252,6 +254,94 @@ function renderInverters(container) {
   });
 }
 
+// ---------- Tariff ----------
+
+function tariffDate(value) {
+  return new Date(`${value}T00:00:00`).toLocaleDateString(getLanguage(), { day: "numeric", month: "long", year: "numeric" });
+}
+
+function tariffCard(tariff, current) {
+  const prices = ["p1", "p2", "p3"].map((p) => formatNumber(tariff[`energy_price_${p}`], 3)).join(" / ");
+  return `
+    <section class="card inverter-card" data-id="${tariff.id}">
+      <div class="inverter-head">
+        <span class="alert-icon">${icon("receipt")}</span>
+        <div class="grow">
+          <h3>${esc(t("tariff.from", { date: tariffDate(tariff.valid_from) }))} ${current ? `<span class="pill">${esc(t("tariff.current"))}</span>` : ""}</h3>
+          <p class="muted small tariff-summary">${esc(prices)} €/kWh · ${esc(formatNumber(tariff.contracted_power_p1_kw, 2))} kW</p>
+        </div>
+        <button type="button" class="icon-btn" data-action="edit" aria-label="${esc(t("common.edit"))}">${icon("edit")}</button>
+        <button type="button" class="icon-btn danger" data-action="delete" aria-label="${esc(t("common.delete"))}">${icon("trash")}</button>
+      </div>
+      <div class="inverter-edit"></div>
+    </section>`;
+}
+
+async function renderTariffs(container) {
+  let tariffs;
+  try {
+    tariffs = await api.get("/api/tariffs");
+  } catch (error) {
+    container.innerHTML = emptyState("alert", t("tariff.load_failed"), error.message);
+    return;
+  }
+  const current = tariffs.find((item) => item.valid_from <= today());
+  container.innerHTML = `
+    <div class="stack">
+      ${settingsForm(`
+        <section class="card">
+          <div class="form-grid">
+            ${field({ label: t("tariff.billing_day"), name: "billing_day", dataType: "int", value: s("billing_day"), hint: t("tariff.billing_day_hint"), attrs: "required min=1 max=28" })}
+          </div>
+        </section>`)}
+      <h3 class="section-title">${esc(t("tariff.list_title"))}</h3>
+      ${tariffs.length ? tariffs.map((item) => tariffCard(item, item === current)).join("") : emptyState("euro", t("tariff.none"), t("tariff.none_text"))}
+      <section class="card add-card" hidden></section>
+      <button type="button" class="btn btn-primary" data-action="add">${icon("plus")}${esc(t("tariff.add"))}</button>
+    </div>`;
+
+  const refresh = () => renderTariffs(container);
+  bindSettingsForm(container.querySelector(".settings-form"), refresh);
+
+  const addCard = container.querySelector(".add-card");
+  const addButton = container.querySelector('[data-action="add"]');
+  addButton.addEventListener("click", () => {
+    addCard.hidden = false;
+    addButton.hidden = true;
+    addCard.innerHTML = `<h3>${esc(t("tariff.add_title"))}</h3>${tariffFormHtml(null, tariffs[0])}`;
+    bindTariffForm(addCard.querySelector("form"), { onSaved: refresh, onCancel: refresh });
+  });
+
+  container.querySelectorAll(".inverter-card").forEach((card) => {
+    const tariff = tariffs.find((item) => item.id === Number(card.dataset.id));
+    const edit = card.querySelector(".inverter-edit");
+    card.querySelector('[data-action="edit"]').addEventListener("click", () => {
+      if (edit.innerHTML) {
+        edit.innerHTML = "";
+        return;
+      }
+      edit.innerHTML = tariffFormHtml(tariff);
+      bindTariffForm(edit.querySelector("form"), {
+        tariff,
+        onSaved: refresh,
+        onCancel: () => {
+          edit.innerHTML = "";
+        },
+      });
+    });
+    card.querySelector('[data-action="delete"]').addEventListener("click", async () => {
+      if (!window.confirm(t("tariff.delete_confirm", { date: tariffDate(tariff.valid_from) }))) return;
+      try {
+        await api.del(`/api/tariffs/${tariff.id}`);
+        toast(t("tariff.deleted"));
+        await refresh();
+      } catch (error) {
+        toast(t("common.delete_failed", { detail: error.message }), "error");
+      }
+    });
+  });
+}
+
 // ---------- Page ----------
 
 export function renderSettings(root, section) {
@@ -290,6 +380,10 @@ export function renderSettings(root, section) {
   function renderSection() {
     if (section === "inverters") {
       renderInverters(body);
+      return;
+    }
+    if (section === "tariff") {
+      renderTariffs(body);
       return;
     }
     if (section === "appearance") {

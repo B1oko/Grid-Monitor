@@ -10,6 +10,7 @@ template stays language-neutral and values are stored raw:
 - ``*_w``   -> power, e.g. ``6,200 W``
 - ``*_min`` -> duration from minutes, e.g. ``1 h 05 min``
 - ``*_deg`` -> angle, e.g. ``15°``
+- ``*_eur`` -> money with two decimals, e.g. ``1,234.50 €``
 - anything else is inserted as-is.
 
 The web UI implements the same rules in ``app/web/static/js/i18n.js``.
@@ -82,6 +83,8 @@ def format_param(name: str, value: Any, language: str) -> str:
         return format_duration(float(value))
     if name.endswith("_deg"):
         return f"{round(float(value))}°"
+    if name.endswith("_eur"):
+        return f"{format_number(float(value), language, 2)} €"
     return str(value)
 
 

@@ -1,4 +1,4 @@
-const CACHE = "grid-monitor-v5";
+const CACHE = "grid-monitor-v6";
 const PRECACHE = [
   "/",
   "/manifest.json",
@@ -18,11 +18,13 @@ const PRECACHE = [
   "/static/js/theme.js",
   "/static/js/ui.js",
   "/static/js/views/alerts.js",
+  "/static/js/views/costs.js",
   "/static/js/views/dashboard.js",
   "/static/js/views/history.js",
   "/static/js/views/inverter-form.js",
   "/static/js/views/settings.js",
   "/static/js/views/setup.js",
+  "/static/js/views/tariff-form.js",
   "/i18n/languages.json",
 ];
 

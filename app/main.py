@@ -13,6 +13,7 @@ from app import __version__
 from app.api.deps import AppState
 from app.api.routers import (
     alerts,
+    costs,
     discovery,
     drivers,
     health,
@@ -135,5 +136,6 @@ app.include_router(settings.router)
 app.include_router(inverters.router)
 app.include_router(discovery.router)
 app.include_router(history.router)
+app.include_router(costs.router)
 app.include_router(alerts.router)
 app.include_router(push.router)

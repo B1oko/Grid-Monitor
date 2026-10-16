@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -70,6 +70,28 @@ class SettingsUpdate(BaseModel):
     alert_no_pv_min_sun_elevation_deg: float | None = Field(default=None, ge=0, le=60)
     alert_offline_enabled: bool | None = None
     alert_offline_minutes: float | None = Field(default=None, ge=1, le=600)
+    billing_day: int | None = Field(default=None, ge=1, le=28)
+
+
+class TariffIn(BaseModel):
+    valid_from: date
+    energy_price_p1: float = Field(ge=0, le=10)
+    energy_price_p2: float = Field(ge=0, le=10)
+    energy_price_p3: float = Field(ge=0, le=10)
+    power_price_p1: float = Field(ge=0, le=10)
+    power_price_p2: float = Field(ge=0, le=10)
+    contracted_power_p1_kw: float = Field(ge=0, le=100)
+    contracted_power_p2_kw: float = Field(ge=0, le=100)
+    export_price: float = Field(default=0.0, ge=0, le=10)
+    fixed_daily: float = Field(default=0.0, ge=0, le=100)
+    electricity_tax_pct: float = Field(default=0.0, ge=0, le=100)
+    vat_pct: float = Field(default=0.0, ge=0, le=100)
+
+
+class TariffOut(TariffIn):
+    id: int
+
+    model_config = {"from_attributes": True}
 
 
 class Resolution(StrEnum):
